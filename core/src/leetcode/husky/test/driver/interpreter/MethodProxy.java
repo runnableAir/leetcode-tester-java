@@ -6,8 +6,8 @@ package leetcode.husky.test.driver.interpreter;
  * <p>
  * It achieves this by wrapping the target method using the abstract
  * method {@link MethodProxy#invoke(T, Object...)}. This method
- * takes an instance from the current context and the arguments
- * required by the target method.
+ * takes an instance on which the method should be invoked and the
+ * arguments required by the target method.
  * <p>
  * By providing this abstraction, the MethodProxy allows the
  * {@link MethodInterpreter} to invoke methods in a consistent and generic

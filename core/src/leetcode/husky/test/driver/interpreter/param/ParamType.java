@@ -1,11 +1,11 @@
 package leetcode.husky.test.driver.interpreter.param;
 
-import leetcode.husky.test.driver.interpreter.param.resolver.SimpleParamResolver;
+import leetcode.husky.test.driver.interpreter.param.resolver.SimpleArgumentResolver;
 import leetcode.husky.test.util.ArgumentParseUtil;
 
 import java.util.List;
 
-public interface ParamType<T> extends SimpleParamResolver<T> {
+public interface ParamType<T> extends SimpleArgumentResolver<T> {
     // string
     ParamType<String> STRING = ArgumentParseUtil::removeRedundantQuote;
     ParamType<String[]> STRING_ARRAY = ArgumentParseUtil::getStringArray;

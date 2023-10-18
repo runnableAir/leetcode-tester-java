@@ -7,7 +7,7 @@ import leetcode.husky.test.cmd.reader.SingleTaskCommandReader;
 import leetcode.husky.test.driver.ObjectCommandDriverFactory;
 import leetcode.husky.test.driver.interpreter.MethodProxyRegistration;
 import leetcode.husky.test.driver.interpreter.MethodProxyRegistry;
-import leetcode.husky.test.driver.interpreter.param.resolver.ParamResolver;
+import leetcode.husky.test.driver.interpreter.param.resolver.ArgumentResolver;
 
 import java.io.Reader;
 import java.util.List;
@@ -84,7 +84,7 @@ public class Tester {
         if (method == null) {
             throw new IllegalStateException("No method is registered!");
         }
-        int requiredInputLines = method.paramResolvers().stream().mapToInt(ParamResolver::argumentCount).sum();
+        int requiredInputLines = method.argumentResolvers().stream().mapToInt(ArgumentResolver::argumentCount).sum();
         var commandReader = getSingleTaskCommandReader(requiredInputLines, method, registry);
         var commandDriver = driverFactory.getCommonClassDriver();
         var shell = new CommandShell(commandDriver, commandReader);
@@ -96,8 +96,8 @@ public class Tester {
         var commandReader = new SingleTaskCommandReader(requiredInputLines, method.name());
         var constructor = registry.getConstructorRegistration();
         if (constructor != null) {
-            List<ParamResolver<?>> paramResolvers = constructor.paramResolvers();
-            if (!paramResolvers.isEmpty()) {
+            List<ArgumentResolver<?>> argumentResolvers = constructor.argumentResolvers();
+            if (!argumentResolvers.isEmpty()) {
                 throw new IllegalStateException(
                         "Using a constructor with non-empty argument list to instantiate an object is not allowed."
                 );

@@ -23,7 +23,7 @@ public class Example1 {
         Tester.<Solution>testForMethod(testData, config -> config
                 .addMethod("method1", ParamType.INT_ARRAY, ParamType.INT)
                 // note that "solution" is null
-                .impl((solution, params) -> new Solution().method1((int[]) params[0], (int) params[1]))
+                .proxy((solution, params) -> new Solution().method1((int[]) params[0], (int) params[1]))
         );
 
         System.out.printf("spend: %dms%n", System.currentTimeMillis() - startTime);

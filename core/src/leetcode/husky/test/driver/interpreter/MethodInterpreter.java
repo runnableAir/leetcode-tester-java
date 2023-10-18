@@ -6,7 +6,7 @@ import leetcode.husky.test.cmd.Command;
  * The MethodInterpreter class is an abstract class that is used
  * to interpret a Command as making a method call on a specific
  * instance. It uses the {@link MethodProxy} to execute the method
- * called by the command.
+ * specified by the command.
  *
  * @param <T> the type of instance
  */

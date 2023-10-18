@@ -1,6 +1,6 @@
 package leetcode.husky.test.driver.interpreter;
 
-import leetcode.husky.test.driver.interpreter.param.resolver.ParamResolver;
+import leetcode.husky.test.driver.interpreter.param.resolver.ArgumentResolver;
 
 import java.util.List;
 
@@ -9,12 +9,12 @@ import java.util.List;
  *
  * @param name              方法名称
  * @param methodProxy       方法代理对象
- * @param paramResolvers 为方法代理对象提供所需参数的解析器列表
+ * @param argumentResolvers 为方法代理对象提供所需参数的解析器列表
  * @param <T>               方法所属实例的类型
  */
 public record MethodProxyRegistration<T>(
         String name,
         MethodProxy<T> methodProxy,
-        List<ParamResolver<?>> paramResolvers) {
+        List<ArgumentResolver<?>> argumentResolvers) {
 
 }

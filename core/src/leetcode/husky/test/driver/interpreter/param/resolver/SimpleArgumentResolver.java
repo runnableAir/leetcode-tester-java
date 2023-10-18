@@ -1,6 +1,6 @@
 package leetcode.husky.test.driver.interpreter.param.resolver;
 
-public interface SimpleParamResolver<T> extends ParamResolver<T> {
+public interface SimpleArgumentResolver<T> extends ArgumentResolver<T> {
 
     T resolveOneArg(String arg);
 

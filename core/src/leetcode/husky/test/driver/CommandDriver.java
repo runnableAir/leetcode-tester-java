@@ -3,15 +3,16 @@ package leetcode.husky.test.driver;
 import leetcode.husky.test.cmd.Command;
 
 /**
- * CommandDriver 用于执行 Command 对象
+ * an interface to execute commands
  */
 public interface CommandDriver {
 
     /**
-     * 执行 Command
+     * execute the command and return an object representing the
+     * result of execution
      *
      * @param command command
-     * @return 执行返回结果, Object 表示任意类型
+     * @return an object representing the result of execution
      */
     Object execute(Command command);
 }

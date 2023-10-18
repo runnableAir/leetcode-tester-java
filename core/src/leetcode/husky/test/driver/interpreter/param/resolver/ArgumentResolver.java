@@ -5,7 +5,7 @@ package leetcode.husky.test.driver.interpreter.param.resolver;
  *
  * @param <T> 解析结果的类型
  */
-public interface ParamResolver<T> {
+public interface ArgumentResolver<T> {
 
     T resolve(String... args);
 

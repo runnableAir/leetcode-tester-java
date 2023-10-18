@@ -1,6 +1,4 @@
-package leetcode.husky.test.driver.interpreter.method;
-
-import leetcode.husky.test.driver.interpreter.MethodProxy;
+package leetcode.husky.test.driver.interpreter;
 
 import java.util.Objects;
 import java.util.function.Consumer;

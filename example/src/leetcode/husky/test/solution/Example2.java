@@ -23,12 +23,12 @@ public class Example2 {
         Tester.<Solution>testForMethod(testData, config -> config
                 // note that we add an implementation for invoking constructor
                 .addConstructor("Solution")
-                .impl(params -> new Solution())
+                .proxy(params -> new Solution())
                 .addMethod("method1", ParamType.INT_ARRAY, ParamType.INT)
                 // An instance of the Solution class is automatically created using the constructor
                 // above whenever this method is requested, and then the instance is passed as the
                 // first parameter "solution" to the implementation.
-                .impl((solution, params) -> solution.method1((int[]) params[0], (int) params[1]))
+                .proxy((solution, params) -> solution.method1((int[]) params[0], (int) params[1]))
         );
 
         System.out.printf("spend: %dms%n", System.currentTimeMillis() - startTime);

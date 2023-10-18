@@ -3,6 +3,12 @@ package leetcode.husky.test.driver;
 import leetcode.husky.test.cmd.Command;
 import leetcode.husky.test.driver.interpreter.MethodInterpreter;
 
+/**
+ * The ObjectCommandDriver class executes commands for requesting method
+ * calls on an instance of a specific type.
+ *
+ *  @param <T> the type of instance
+ */
 public class ObjectCommandDriver<T> implements CommandDriver {
     private final MethodInterpreter<T> methodInterpreter;
     private T instance;

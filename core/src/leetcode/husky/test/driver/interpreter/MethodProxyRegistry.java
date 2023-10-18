@@ -1,15 +1,25 @@
 package leetcode.husky.test.driver.interpreter;
 
 
-import leetcode.husky.test.driver.interpreter.method.ConstructorMethodProxyImpl;
-import leetcode.husky.test.driver.interpreter.method.NewInstanceFunc;
 import leetcode.husky.test.driver.interpreter.param.ParamType;
+import leetcode.husky.test.driver.interpreter.param.resolver.ArgumentResolver;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * MethodProxyRegistry is a class that registers the method proxy of a specific
+ * type instance.
+ * <p>
+ * The registration of a method proxy requires providing of its name for
+ * retrieving itself and its parameter type(s) specified by {@link ParamType} object
+ * which implements {@link ArgumentResolver} interface to convert the input provided
+ * by caller to arguments that matches the target method's argument list.
+ *
+ * @param <T> the type of the instance
+ */
 public class MethodProxyRegistry<T> {
     private final Map<String, MethodProxyRegistration<T>> methodProxyDefinitionMap = new HashMap<>();
     private final Consumer<T> instancePublisher;
@@ -18,13 +28,12 @@ public class MethodProxyRegistry<T> {
 
 
     /**
-     * Create an instance of the <code>MethodProxyRegistry</code> class with a specific
-     * instance publisher.
+     * Create an instance of this class with a specific instance publisher.
      * <p>
-     * The instance publisher, declared as a Consumer interface, accepts the instance to
-     * be published via its "accept" method, used by the constructor method proxy to
-     * publish an instance after its creation, placing it in the current context to
-     * fulfill the request of new instance.
+     * The instance publisher, declared as a Consumer interface, accepts the instance
+     * to be published through its "accept" method. When a constructor method proxy
+     * is invoked, this publisher will publish a new instance in the context, where
+     * the instance will be stored and retrieved for subsequent method proxy invocations.
      *
      * @param instancePublisher a {@link Consumer} to implement of publishing instance
      */
@@ -33,15 +42,18 @@ public class MethodProxyRegistry<T> {
     }
 
     /**
-     * 根据方法名、参数列表注册一个方法, 并返回一个用于注册方法代理的接口
+     * Add a method.
      * <p>
-     * 该参数列表中的元素需实现 {@link ParamType} 接口
+     * By specifying the proxy name of the target method and a set of
+     * parameter types that match the target method's parameter list,
+     * obtain a register to register a {@link MethodProxy} object that implements
+     * the proxy for the target method.
      *
-     * @param name       方法名
-     * @param paramTypes 参数列表
-     * @return 返回一个接受下一步选项的接口
+     * @param name       The proxy name of the target method
+     * @param paramTypes A set of parameter types that match the target method's parameter list
+     * @return Method<T> The register used to register the {@link MethodProxy} object
      */
-    public ThenMethodImpl<T> addMethod(String name, ParamType<?>... paramTypes) {
+    public Method<T> addMethod(String name, ParamType<?>... paramTypes) {
         return methodProxy -> {
             MethodProxyRegistration<T> method = new MethodProxyRegistration<>(name, methodProxy, List.of(paramTypes));
             methodProxyDefinitionMap.put(name, method);
@@ -52,7 +64,20 @@ public class MethodProxyRegistry<T> {
         };
     }
 
-    public ThenConstructorImpl<T> addConstructor(String name, ParamType<?>... paramTypes) {
+    /**
+     * Add a constructor method.
+     * <p>
+     * By specifying the <b>proxy name</b> of the target method and a set of
+     * <b>parameter types</b> that match the target method's parameter list,
+     * obtain a register to register a {@link NewInstanceFunc} object that returns
+     * a new instance of type T.
+     *
+     * @param name       The proxy name of the target method
+     * @param paramTypes A set of parameter types that match the target method's parameter list
+     * @return Constructor<T> The register used to register the
+     * {@link NewInstanceFunc} object
+     */
+    public Constructor<T> addConstructor(String name, ParamType<?>... paramTypes) {
         return newInstanceFunc -> {
             MethodProxy<T> constructor = new ConstructorMethodProxyImpl<>(instancePublisher, newInstanceFunc);
             MethodProxyRegistration<T> method = new MethodProxyRegistration<>(name, constructor, List.of(paramTypes));
@@ -86,17 +111,26 @@ public class MethodProxyRegistry<T> {
         return methodProxyDefinitionMap.get(defaultConstructorName);
     }
 
-    public interface ThenConstructorImpl<T> {
-        MethodProxyRegistry<T> impl(NewInstanceFunc<T> newInstanceFunc);
+    public interface Constructor<T> {
+        MethodProxyRegistry<T> proxy(NewInstanceFunc<T> newInstanceFunc);
     }
 
-    public interface ThenMethodImpl<T> {
-        /**
-         * 为注册方法添加实现逻辑
-         *
-         * @param methodProxy methodProxy 对象. eg: (object, params) -> object.foo(params[0], params[1]...)
-         * @return 当前 MethodProxyRegistry
-         */
-        MethodProxyRegistry<T> impl(MethodProxy<T> methodProxy);
+    public interface Method<T> {
+        MethodProxyRegistry<T> proxy(MethodProxy<T> methodProxy);
+    }
+
+    private static class ConstructorMethodProxyImpl<T> extends ConstructorMethodProxy<T> {
+        private final NewInstanceFunc<T> newInstanceFunc;
+
+
+        public ConstructorMethodProxyImpl(Consumer<T> instancePublisher, NewInstanceFunc<T> newInstanceFunc) {
+            super(instancePublisher);
+            this.newInstanceFunc = newInstanceFunc;
+        }
+
+        @Override
+        protected T newInstance(Object... methodArguments) {
+            return newInstanceFunc.apply(methodArguments);
+        }
     }
 }
