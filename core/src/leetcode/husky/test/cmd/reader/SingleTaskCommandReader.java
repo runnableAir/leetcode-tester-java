@@ -9,7 +9,6 @@ import java.util.List;
 public class SingleTaskCommandReader implements CommandReader {
     private final int argumentLineCount;
     private final String commandName;
-    private Command preCommand;
 
 
     public SingleTaskCommandReader(int argumentLineCount, String commandName) {
@@ -27,14 +26,7 @@ public class SingleTaskCommandReader implements CommandReader {
             return new CommandSet(List.of());
         }
         Command command = new Command(commandName, lines);
-        if (preCommand != null) {
-            return new CommandSet(List.of(preCommand, command));
-        }
         return new CommandSet(List.of(command));
-    }
-
-    public void setPreCommand(Command preCommand) {
-        this.preCommand = preCommand;
     }
 
     private boolean notEnoughArgs(List<String> lines) {
