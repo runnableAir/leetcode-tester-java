@@ -14,7 +14,7 @@ import java.io.Reader;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class Tester {
+public class TestUtil {
 
     public static <T> void testForCommands(Reader testData, Consumer<MethodProxyRegistry<T>> methodRegister) {
         var driverFactory = new ObjectCommandDriverFactory<T>();

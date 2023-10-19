@@ -1,6 +1,6 @@
 package leetcode.husky.test.solution;
 
-import leetcode.husky.test.Tester;
+import leetcode.husky.test.TestUtil;
 import leetcode.husky.test.driver.interpreter.param.ParamType;
 
 import java.io.Reader;
@@ -20,7 +20,7 @@ public class Example2 {
 
         long startTime = System.currentTimeMillis();
 
-        Tester.<Solution>testForMethod(testData, config -> config
+        TestUtil.<Solution>testForMethod(testData, config -> config
                 // note that we add an implementation for invoking constructor
                 .addConstructor("Solution")
                 .proxy(params -> new Solution())
