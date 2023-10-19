@@ -6,6 +6,7 @@ import leetcode.husky.test.cmd.listener.EndProcessListener;
 import leetcode.husky.test.cmd.listener.StartProcessListener;
 import leetcode.husky.test.cmd.reader.CommandReader;
 import leetcode.husky.test.cmd.reader.LineReader;
+import leetcode.husky.test.cmd.reader.SimpleLineReaderImpl;
 import leetcode.husky.test.driver.CommandDriver;
 
 import java.io.ByteArrayOutputStream;
@@ -50,7 +51,7 @@ public class CommandShell {
      * @param commandSource input source
      */
     public void process(Reader commandSource) {
-        LineReader lrd = new LineReaderImpl(new Scanner(commandSource));
+        LineReader lrd = new SimpleLineReaderImpl(commandSource);
         CommandSet set;
         while (!(set = commandReader.readCommandSet(lrd)).isEmpty()) {
             doProcess(set);
@@ -161,22 +162,6 @@ public class CommandShell {
         @Override
         public void onStartProcess(CommandSet commandSet, int commandSetIndex) {
             out.printf("process command set[%d]:%n", commandSetIndex);
-        }
-    }
-
-    static class LineReaderImpl implements LineReader {
-        Scanner scanner;
-
-        LineReaderImpl(Scanner scanner) {
-            this.scanner = scanner;
-        }
-
-        public boolean hasNextLine() {
-            return scanner.hasNextLine();
-        }
-
-        public String nextLine() {
-            return scanner.nextLine();
         }
     }
 }
