@@ -19,7 +19,7 @@ public class SingleTaskCommandReader implements CommandReader {
     @Override
     public CommandSet readCommandSet(LineReader lineReader) {
         List<String> lines = new ArrayList<>();
-        while (lineReader.hasNextLine() && notEnoughArgs(lines)) {
+        while (notEnoughArgs(lines) && lineReader.hasNextLine()) {
             lines.add(lineReader.nextLine());
         }
         if (notEnoughArgs(lines)) {
