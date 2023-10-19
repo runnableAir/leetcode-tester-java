@@ -31,6 +31,6 @@ public class Example2 {
                 .proxy((solution, params) -> solution.method1((int[]) params[0], (int) params[1]))
         );
 
-        System.out.printf("spend: %dms%n", System.currentTimeMillis() - startTime);
+        System.out.printf("run in %dms%n", System.currentTimeMillis() - startTime);
     }
 }

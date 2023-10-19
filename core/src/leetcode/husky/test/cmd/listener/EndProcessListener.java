@@ -3,20 +3,16 @@ package leetcode.husky.test.cmd.listener;
 import leetcode.husky.test.cmd.CommandSet;
 
 /**
- * 监听命令集执行完毕.
- * 监听内容:
- * <ol>
- *     <li>处理完毕的 CommandSet </li>
- *     <li>所在的处理批次 (processId)</li>
- * </ol>
+ * A listener that listens for the completion of a set of commands
  */
 public interface EndProcessListener {
 
     /**
-     * 监听回调
+     * Do something when a set of commands is completed
      *
-     * @param commandSet commandSet
-     * @param processId  processId
+     * @param commandSet      a set of commands
+     * @param commandSetIndex the index of the commands set
+     * @param spendTime       the time spend of current process
      */
-    void onEndProcess(CommandSet commandSet, int processId);
+    void onEndProcess(CommandSet commandSet, int commandSetIndex, long spendTime);
 }

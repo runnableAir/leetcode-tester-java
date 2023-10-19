@@ -1,68 +1,53 @@
 package leetcode.husky.test.cmd;
 
-import leetcode.husky.test.cmd.listener.EndProcessListener;
-import leetcode.husky.test.driver.CommandDriver;
 import leetcode.husky.test.cmd.listener.AfterExecuteListener;
 import leetcode.husky.test.cmd.listener.BeforeExecuteListener;
+import leetcode.husky.test.cmd.listener.EndProcessListener;
 import leetcode.husky.test.cmd.listener.StartProcessListener;
 import leetcode.husky.test.cmd.reader.CommandReader;
 import leetcode.husky.test.cmd.reader.LineReader;
+import leetcode.husky.test.driver.CommandDriver;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 /**
- * CommandsShell 用于从输入中读取一系列 Command (CommandSet) 并执行
+ * CommandShell class is used to handle commands input from
+ * a character stream.
  */
 public class CommandShell {
     private final CommandDriver commandDriver;
     private final CommandReader commandReader;
 
-    // 监听器
-    private StartProcessListener startProcessListener;
-    private EndProcessListener endProcessListener;
-    private BeforeExecuteListener beforeExecuteListener;
-    private AfterExecuteListener afterExecuteListener;
+    // listeners
+    private final List<StartProcessListener> startProcessListeners = new ArrayList<>();
+    private final List<EndProcessListener> endProcessListeners = new ArrayList<>();
+    private final List<BeforeExecuteListener> beforeExecuteListeners = new ArrayList<>();
+    private final List<AfterExecuteListener> afterExecuteListeners = new ArrayList<>();
 
-    // 当前处理批次
-    private int processId;
+    // the count of command set already processed
+    private int processCount;
 
 
     public CommandShell(CommandDriver commandDriver, CommandReader commandReader) {
         this.commandDriver = commandDriver;
         this.commandReader = commandReader;
-        initDefaultListener();
-    }
-
-    private void initDefaultListener() {
+        // initial default listener
         DefaultListener defaultListener = new DefaultListener();
-        startProcessListener = defaultListener;
-        beforeExecuteListener = defaultListener;
-        afterExecuteListener = defaultListener;
-        endProcessListener = defaultListener;
+        startProcessListeners.add(defaultListener);
+        beforeExecuteListeners.add(defaultListener);
+        afterExecuteListeners.add(defaultListener);
+        endProcessListeners.add(defaultListener);
     }
 
     /**
-     * 从字符流中读取输入的 Command 并执行.
-     * <p>
-     * 要获得输入的 Command, 需将读取的原始文本进行解析,
-     * 这一步由该实例的 {@link CommandReader#readCommandSet(LineReader)} 实现,
-     * 通过该方法, 可以获取每次要执行的一组 Command, 即 {@link CommandSet},
-     * 然后通过该实例的 {@link CommandDriver} 逐个执行其中的每个 Command.
-     * <p>
-     * 在处理每组 Command 的过程中, 会触发一些监听器:
-     * <ul>
-     *     <li>{@link StartProcessListener}: 监听 "<b>命令集</b>执行前"</li>
-     *     <li>{@link EndProcessListener}: 监听 "<b>命令集</b>执行后"</li>
-     *     <li>{@link BeforeExecuteListener}: 监听 "命令执行前"</li>
-     *     <li>{@link AfterExecuteListener}: 监听 "命令执行后"</li>
-     * </ul>
+     * read commands input from a character stream and process them.
      *
-     * @param commandSource 用于读取 Command 的字符流
+     * @param commandSource input source
      */
     public void process(Reader commandSource) {
         LineReader lrd = new LineReaderImpl(new Scanner(commandSource));
@@ -73,17 +58,49 @@ public class CommandShell {
     }
 
     private void doProcess(CommandSet commandSet) {
-        startProcessListener.onStartProcess(commandSet, processId);
+        // notify the StartProcessListener(s)
+        startProcessListeners.forEach(lst -> lst.onStartProcess(commandSet, processCount));
+
         List<Command> commands = commandSet.commands();
+        long spendTime = 0;
         for (int i = 0; i < commands.size(); i++) {
             Command cmd = commands.get(i);
-            beforeExecuteListener.beforeExecute(cmd, processId, i);
+            // notify the BeforeExecuteListener(s)
+            for (var listener : beforeExecuteListeners) {
+                listener.beforeExecute(cmd, i);
+            }
+            long start = System.currentTimeMillis();
             Object result = commandDriver.execute(cmd);
-            afterExecuteListener.afterExecute(cmd, processId, i, result);
+            spendTime += System.currentTimeMillis() - start;
+            // notify the AfterExecuteListener(s)
+            for (var listener : afterExecuteListeners) {
+                listener.afterExecute(cmd, i, result);
+            }
         }
-        endProcessListener.onEndProcess(commandSet, processId);
-        processId++;
+
+        // notify the EndProcessListener(s)
+        for (var endProcessListener : endProcessListeners) {
+            endProcessListener.onEndProcess(commandSet, processCount, spendTime);
+        }
+        processCount++;
     }
+
+    public void addStartProcessListener(StartProcessListener listener) {
+        startProcessListeners.add(listener);
+    }
+
+    public void addBeforeExecuteListener(BeforeExecuteListener listener) {
+        beforeExecuteListeners.add(listener);
+    }
+
+    public void addAfterExecuteListener(AfterExecuteListener listener) {
+        afterExecuteListeners.add(listener);
+    }
+
+    public void addEndProcessListener(EndProcessListener listener) {
+        endProcessListeners.add(listener);
+    }
+
 
     static String readableResult(Object o) {
         // use the new feature "Pattern matching for Switch" from Java 21
@@ -111,48 +128,29 @@ public class CommandShell {
         };
     }
 
-    public void setStartProcessListener(StartProcessListener startProcessListener) {
-        this.startProcessListener = startProcessListener;
-    }
-
-    public void setBeforeExecuteListener(BeforeExecuteListener beforeExecuteListener) {
-        this.beforeExecuteListener = beforeExecuteListener;
-    }
-
-    public void setAfterExecuteListener(AfterExecuteListener afterExecuteListener) {
-        this.afterExecuteListener = afterExecuteListener;
-    }
-
-    public void setEndProcessListener(EndProcessListener endProcessListener) {
-        this.endProcessListener = endProcessListener;
-    }
-
-    static class DefaultListener
+    private static class DefaultListener
             implements StartProcessListener,
             BeforeExecuteListener,
             AfterExecuteListener,
             EndProcessListener {
-        // PrintWriter 用于缓冲输出内容
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        PrintWriter out = new PrintWriter(bos, false);
-        int executeCount;
-        long startTime;
+        private final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        private final PrintWriter out = new PrintWriter(bos, false);
+        private int executeCount;
 
         @Override
-        public void afterExecute(Command command, int processId, int commandIndex, Object result) {
+        public void afterExecute(Command command, int commandIndex, Object result) {
             out.printf("%2d out[%d]: %s%n%n", executeCount, commandIndex, readableResult(result));
             executeCount++;
         }
 
         @Override
-        public void beforeExecute(Command command, int processId, int commandIndex) {
+        public void beforeExecute(Command command, int commandIndex) {
             out.printf("%2d in[%d]: %s%n", executeCount, commandIndex, command);
         }
 
         @Override
-        public void onEndProcess(CommandSet commandSet, int processId) {
-            long spendTime = System.currentTimeMillis() - startTime;
-            out.printf("process command set[%d] finished, spend %dms%n", processId, spendTime);
+        public void onEndProcess(CommandSet commandSet, int commandSetIndex, long spendTime) {
+            out.printf("process command set[%d] finished, spend %dms%n", commandSetIndex, spendTime);
             // print output from the current executed command set to stdout
             out.flush();
             System.out.println(bos);
@@ -161,9 +159,8 @@ public class CommandShell {
         }
 
         @Override
-        public void onStartProcess(CommandSet commandSet, int processId) {
-            out.printf("process command set[%d]:%n", processId);
-            startTime = System.currentTimeMillis();
+        public void onStartProcess(CommandSet commandSet, int commandSetIndex) {
+            out.printf("process command set[%d]:%n", commandSetIndex);
         }
     }
 

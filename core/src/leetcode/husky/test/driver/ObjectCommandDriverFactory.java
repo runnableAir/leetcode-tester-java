@@ -10,7 +10,7 @@ public class ObjectCommandDriverFactory<T> {
 
 
     public ObjectCommandDriverFactory() {
-        methodProxyRegistry = new MethodProxyRegistry<>(t -> getCommonClassDriver().setInstance(t));
+        methodProxyRegistry = new MethodProxyRegistry<>(t -> getDriver().setInstance(t));
         objectCommandDriver = new ObjectCommandDriver<>(new CommonMethodInterpreter<>(methodProxyRegistry));
     }
 
@@ -18,7 +18,7 @@ public class ObjectCommandDriverFactory<T> {
         return methodProxyRegistry;
     }
 
-    public ObjectCommandDriver<T> getCommonClassDriver() {
+    public ObjectCommandDriver<T> getDriver() {
         return objectCommandDriver;
     }
 }

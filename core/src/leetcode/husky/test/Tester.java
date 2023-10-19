@@ -1,10 +1,11 @@
 package leetcode.husky.test;
 
-import leetcode.husky.test.cmd.Command;
 import leetcode.husky.test.cmd.CommandShell;
 import leetcode.husky.test.cmd.reader.MultiTaskCommandReader;
 import leetcode.husky.test.cmd.reader.SingleTaskCommandReader;
 import leetcode.husky.test.driver.ObjectCommandDriverFactory;
+import leetcode.husky.test.driver.interpreter.ConstructorMethodProxy;
+import leetcode.husky.test.driver.interpreter.MethodProxy;
 import leetcode.husky.test.driver.interpreter.MethodProxyRegistration;
 import leetcode.husky.test.driver.interpreter.MethodProxyRegistry;
 import leetcode.husky.test.driver.interpreter.param.resolver.ArgumentResolver;
@@ -22,7 +23,7 @@ public class Tester {
         methodRegister.accept(registry);
 
         var commandReader = new MultiTaskCommandReader();
-        var commandDriver = driverFactory.getCommonClassDriver();
+        var commandDriver = driverFactory.getDriver();
         var shell = new CommandShell(commandDriver, commandReader);
         shell.process(testData);
     }
@@ -79,31 +80,42 @@ public class Tester {
         config.accept(registry);
 
         // calculate the number of arguments separated by a line of input,
-        // which is resolved by method parameters
-        var method = registry.getMethodProxyDefinitionByDefault();
+        var method = registry.getMethodRegistrationByDefault();
         if (method == null) {
             throw new IllegalStateException("No method is registered!");
         }
         int requiredInputLines = method.argumentResolvers().stream().mapToInt(ArgumentResolver::argumentCount).sum();
-        var commandReader = getSingleTaskCommandReader(requiredInputLines, method, registry);
-        var commandDriver = driverFactory.getCommonClassDriver();
+        checkConstructor(registry, method);
+        var commandReader = new SingleTaskCommandReader(requiredInputLines, method.name());
+        var commandDriver = driverFactory.getDriver();
         var shell = new CommandShell(commandDriver, commandReader);
         shell.process(testData);
     }
 
-    private static <T> SingleTaskCommandReader getSingleTaskCommandReader(
-            int requiredInputLines, MethodProxyRegistration<T> method, MethodProxyRegistry<T> registry) {
-        var commandReader = new SingleTaskCommandReader(requiredInputLines, method.name());
+    private static <T> void checkConstructor(MethodProxyRegistry<T> registry, MethodProxyRegistration<T> method) {
         var constructor = registry.getConstructorRegistration();
-        if (constructor != null) {
-            List<ArgumentResolver<?>> argumentResolvers = constructor.argumentResolvers();
-            if (!argumentResolvers.isEmpty()) {
-                throw new IllegalStateException(
-                        "Using a constructor with non-empty argument list to instantiate an object is not allowed."
-                );
-            }
-            commandReader.setPreCommand(new Command(constructor.name(), List.of()));
+        if (constructor == null || !(constructor.methodProxy()
+                instanceof ConstructorMethodProxy<T>)) {
+            return;
         }
-        return commandReader;
+        MethodProxy<T> newProxy = combineMethodWithConstructor(constructor, method);
+        registry.addRegistration(
+                new MethodProxyRegistration<>(method.name(), newProxy, method.argumentResolvers())
+        );
+    }
+
+    private static <T> MethodProxy<T> combineMethodWithConstructor(
+            MethodProxyRegistration<T> constructor, MethodProxyRegistration<T> method) {
+        List<ArgumentResolver<?>> argumentResolvers = constructor.argumentResolvers();
+        if (!argumentResolvers.isEmpty()) {
+            throw new IllegalStateException(
+                    "Using a constructor with non-empty argument list to instantiate an object is not allowed."
+            );
+        }
+        ConstructorMethodProxy<T> conProxy = (ConstructorMethodProxy<T>) constructor.methodProxy();
+        return (t, params) -> {
+            t = conProxy.newInstance();
+            return method.methodProxy().invoke(t, params);
+        };
     }
 }

@@ -5,6 +5,7 @@ import leetcode.husky.test.cmd.Command;
 import leetcode.husky.test.driver.interpreter.param.resolver.ArgumentResolver;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * CommonMethodInterpreter is a class that implement the
@@ -29,12 +30,12 @@ public class CommonMethodInterpreter<T> extends MethodInterpreter<T> {
         Iterator<String> cmdArgs = command.args().iterator();
         for (int i = 0; i < methodArgCnt; i++) {
             ArgumentResolver<?> resolver = argumentResolvers.get(i);
-            methodArgs[i] = resolveMethodArg(cmdArgs, resolver);
+            methodArgs[i] = doResolve(cmdArgs, resolver);
         }
         return methodArgs;
     }
 
-    private static Object resolveMethodArg(Iterator<String> cmdArgs, ArgumentResolver<?> argumentResolver) {
+    private static Object doResolve(Iterator<String> cmdArgs, ArgumentResolver<?> argumentResolver) {
         int n = argumentResolver.argumentCount();
         String[] args = new String[n];
         for (int i = 0; i < n; i++) {
@@ -45,7 +46,12 @@ public class CommonMethodInterpreter<T> extends MethodInterpreter<T> {
 
     @Override
     protected MethodProxy<T> getMethodProxy(Command command) {
-        return methodProxyRegistry.getRegistration(command.name()).methodProxy();
+        String name = command.name();
+        MethodProxyRegistration<T> registration = methodProxyRegistry.getRegistration(name);
+        if (registration == null) {
+            throw new NoSuchElementException("no proxy registered for the \"" + command.name() + "\" method");
+        }
+        return registration.methodProxy();
     }
 
     @Override

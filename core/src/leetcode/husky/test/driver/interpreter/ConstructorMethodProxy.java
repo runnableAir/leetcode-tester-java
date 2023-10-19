@@ -4,9 +4,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public abstract class ConstructorMethodProxy<T> implements MethodProxy<T> {
-    /**
-     * an instance injector
-     */
     private final Consumer<T> instancePublisher;
 
 
@@ -22,5 +19,5 @@ public abstract class ConstructorMethodProxy<T> implements MethodProxy<T> {
         return null;
     }
 
-    protected abstract T newInstance(Object... methodArguments);
+    public abstract T newInstance(Object... methodArguments);
 }

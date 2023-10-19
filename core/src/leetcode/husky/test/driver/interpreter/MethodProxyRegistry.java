@@ -97,7 +97,7 @@ public class MethodProxyRegistry<T> {
         return methodProxyDefinitionMap.get(name);
     }
 
-    public MethodProxyRegistration<T> getMethodProxyDefinitionByDefault() {
+    public MethodProxyRegistration<T> getMethodRegistrationByDefault() {
         if (defaultMethodName == null) {
             return null;
         }
@@ -129,7 +129,7 @@ public class MethodProxyRegistry<T> {
         }
 
         @Override
-        protected T newInstance(Object... methodArguments) {
+        public T newInstance(Object... methodArguments) {
             return newInstanceFunc.apply(methodArguments);
         }
     }

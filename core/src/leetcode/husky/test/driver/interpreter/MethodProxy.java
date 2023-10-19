@@ -10,8 +10,8 @@ package leetcode.husky.test.driver.interpreter;
  * arguments required by the target method.
  * <p>
  * By providing this abstraction, the MethodProxy allows the
- * {@link MethodInterpreter} to invoke methods in a consistent and generic
- * manner, regardless of the specific method being invoked.
+ * {@link MethodInterpreter} to invoke methods in a consistent and
+ * generic manner, regardless of the specific method being invoked.
  *
  * @param <T> the type of the instance
  * @see MethodInterpreter
