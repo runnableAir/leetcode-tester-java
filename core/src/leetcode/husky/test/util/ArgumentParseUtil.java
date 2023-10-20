@@ -10,18 +10,25 @@ import java.util.stream.Stream;
 public class ArgumentParseUtil {
 
     public static List<String> getStringList(String arrayLiked) {
+        String itemRegex = "\"((?:\\\\\"|[^\"])*)\"";
+        checkArrayLiked(itemRegex, arrayLiked, "string");
         return getList(String.class, arrayLiked);
     }
 
     public static List<List<String>> getString2dList(String arrayLiked) {
+        String itemRegex = makeArrayLikedRegex("\"((?:\\\\\"|[^\"])*)\"");
+        checkArrayLiked(itemRegex, arrayLiked, "2d-string");
         return get2dList(String.class, arrayLiked);
     }
 
     public static List<Integer> getIntList(String arrayLiked) {
+        checkArrayLiked("-?\\d+", arrayLiked, "int");
         return getList(Integer.class, arrayLiked);
     }
 
     public static List<List<Integer>> getInt2dList(String arrayLiked) {
+        String itemRegex = makeArrayLikedRegex("-?\\d+");
+        checkArrayLiked(itemRegex, arrayLiked, "2d-int");
         return get2dList(Integer.class, arrayLiked);
     }
 
@@ -64,6 +71,31 @@ public class ArgumentParseUtil {
         return splitArrayLiked(_2dArrayLiked)
                 .map(a -> getList(elementType, a))
                 .toList();
+    }
+
+    static void checkArrayLiked(String itemRegex, String arrayLiked, String expectedElementType) {
+        if (arrayLiked == null) {
+            throw new IllegalArgumentException("\"arrayLiked\" can not be null");
+        }
+        if (itemRegex == null) {
+            throw new IllegalStateException("\"itemRegex\" can not be null");
+        }
+        String regex = makeArrayLikedRegex(itemRegex);
+        if (!arrayLiked.matches(regex)) {
+            throw new IllegalArgumentException(
+                    "\"" + arrayLiked + "\" is a invalid string for " + expectedElementType + " array");
+        }
+    }
+
+    /**
+     * Return a regular expression of an array formed by the regular
+     * expression of its elements.
+     *
+     * @param element the regular expression of the element
+     * @return a regular expression of an array
+     */
+    static String makeArrayLikedRegex(String element) {
+        return "\\[((" + element + ")?|(" + element + "(,\\s*" + element + ")+))]";
     }
 
     private static Stream<String> splitArrayLiked(String arrayLiked) {
