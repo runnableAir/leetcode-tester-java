@@ -8,26 +8,27 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class ArgumentParseUtil {
+    static final String NUM_REGEX = "-?(?!0\\d)\\d+";
+    static final String ARRAY_ITEM_REGEX = "(\"((?:\\\\\"|[^\"])*)\"|(" + NUM_REGEX + "))";
 
     public static List<String> getStringList(String arrayLiked) {
-        String itemRegex = "\"((?:\\\\\"|[^\"])*)\"";
-        checkArrayLiked(itemRegex, arrayLiked, "string");
+        checkArrayLiked(ARRAY_ITEM_REGEX, arrayLiked, "string");
         return getList(String.class, arrayLiked);
     }
 
     public static List<List<String>> getString2dList(String arrayLiked) {
-        String itemRegex = makeArrayLikedRegex("\"((?:\\\\\"|[^\"])*)\"");
+        String itemRegex = makeArrayLikedRegex(ARRAY_ITEM_REGEX);
         checkArrayLiked(itemRegex, arrayLiked, "2d-string");
         return get2dList(String.class, arrayLiked);
     }
 
     public static List<Integer> getIntList(String arrayLiked) {
-        checkArrayLiked("-?\\d+", arrayLiked, "int");
+        checkArrayLiked(NUM_REGEX, arrayLiked, "int");
         return getList(Integer.class, arrayLiked);
     }
 
     public static List<List<Integer>> getInt2dList(String arrayLiked) {
-        String itemRegex = makeArrayLikedRegex("-?\\d+");
+        String itemRegex = makeArrayLikedRegex(NUM_REGEX);
         checkArrayLiked(itemRegex, arrayLiked, "2d-int");
         return get2dList(Integer.class, arrayLiked);
     }
