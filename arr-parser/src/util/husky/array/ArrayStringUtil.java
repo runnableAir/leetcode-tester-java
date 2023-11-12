@@ -1,0 +1,292 @@
+package util.husky.array;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+import java.util.function.Function;
+
+public class ArrayStringUtil {
+    static final int INT_TYPE = 0x1;
+    static final int INT64_TYPE = 0x2;
+    static final int NUMBER_TYPE = 0x3;
+    static final int STRING_TYPE = 0x4;
+
+
+    public static List<String> getStringList(String s) {
+        ArrayNode arrayNode = buildArrayNode(s, 1, STRING_TYPE);
+        return nodeToList(arrayNode, ArrayStringUtil::elementToString);
+    }
+
+    public static List<List<String>> getString2dList(String s) {
+        ArrayNode arrayNode = buildArrayNode(s, 2, STRING_TYPE);
+        return nodeTo2dList(arrayNode, ArrayStringUtil::elementToString);
+    }
+
+    public static List<Integer> getIntList(String s) {
+        ArrayNode arrayNode = buildArrayNode(s, 1, INT_TYPE);
+        return nodeToList(arrayNode, elementToNumberThen(Number::intValue));
+    }
+
+    public static List<List<Integer>> getInt2dList(String s) {
+        ArrayNode arrayNode = buildArrayNode(s, 2, INT_TYPE);
+        return nodeTo2dList(arrayNode, elementToNumberThen(Number::intValue));
+    }
+
+    public static List<Long> getLongList(String s) {
+        ArrayNode arrayNode = buildArrayNode(s, 1, INT64_TYPE);
+        return nodeToList(arrayNode, elementToNumberThen(Number::longValue));
+    }
+
+    public static List<List<Long>> getLong2dList(String s) {
+        ArrayNode arrayNode = buildArrayNode(s, 2, INT64_TYPE);
+        return nodeTo2dList(arrayNode, elementToNumberThen(Number::longValue));
+    }
+
+
+    private static String elementToString(ElementNode<?> elementNode) {
+        if (elementNode instanceof StringNode node) {
+            return node.getVal();
+        }
+        throw new IllegalArgumentException(elementNode + " is not a StringNode");
+    }
+
+    private static <T> Function<ElementNode<?>, T> elementToNumberThen(Function<Number, T> thenFunc) {
+        return elementNode -> thenFunc.apply(elementToNumber(elementNode));
+    }
+
+    private static Number elementToNumber(ElementNode<?> elementNode) {
+        if (elementNode instanceof NumberNode node) {
+            return node.getVal();
+        }
+        throw new IllegalStateException(elementNode + " is not a NumberNode");
+    }
+
+    private static <T> List<T> nodeToList(ArrayNode arrayNode, Function<ElementNode<?>, T> elementConverter) {
+        return arrayNode.getChildren()
+                .stream()
+                .map(node -> (ElementNode<?>) node)
+                .map(elementConverter)
+                .toList();
+    }
+
+    private static <T> List<List<T>> nodeTo2dList(ArrayNode arrayNode, Function<ElementNode<?>, T> elementConverter) {
+        return arrayNode.getChildren()
+                .stream()
+                .map(node -> nodeToList(node, elementConverter))
+                .toList();
+    }
+
+
+    static ArrayNode buildArrayNode(String s, int dimension, int allowElementType) {
+        if (dimension == 0) {
+            throw new IllegalArgumentException("the dimension of the array can not be zero");
+        }
+        if (s.isEmpty()) {
+            throw new IllegalArgumentException("can not convert the string as an array because it is empty");
+        }
+        int len = s.length();
+        if (s.charAt(0) != '[' || s.charAt(len - 1) != ']') {
+            throw new IllegalArgumentException(
+                    "can not convert the string as an array because it isn't wrapped in \"[]\""
+            );
+        }
+
+
+        Deque<ArrayNode> stk = new ArrayDeque<>();
+        ArrayNode root = new ArrayNode();
+        ArrayNode cur = root;
+        stk.push(root);
+        int curDimension = 1;
+        int i = 1;
+        // each loop we scan and make a node
+        while (i < len && curDimension > 0 && curDimension <= dimension) {
+            char c;
+            // skip white spaces
+            if (Character.isWhitespace(c = s.charAt(i))) {
+                i++;
+                continue;
+            }
+            // into a new array (push node)
+            if (c == '[') {
+                curDimension++;
+                // new child node
+                ArrayNode child = new ArrayNode();
+                cur.appendChild(child);
+                cur = child;
+                stk.push(child);
+                i++;
+                continue;
+            }
+
+            /*
+             * handle string or number element node if the array
+             * IS NOT empty.
+             *
+             * if the array IS NOT empty:
+             * (1) we already scanned some element nodes of current node
+             * (2) or we scanned no element node, and we don't meet the
+             *     end char(']') which means no element node found
+             */
+            if (!cur.getChildren().isEmpty() || c != ']') {
+                // ready to handle an element node but check
+                // if current dimension is enough at first
+                if (curDimension < dimension) {
+                    throw new IllegalArgumentException(
+                            "expected '[' but found '%s' at %d pos, because the array should be %d dimension"
+                                    .formatted(c, i, dimension)
+                    );
+                }
+                i = scanOneElement(i, s, cur, allowElementType);
+            }
+
+            // skip white spaces
+            while (i < len && Character.isWhitespace(c = s.charAt(i))) {
+                i++;
+            }
+            // expected ',' or ']'
+            if (i == len) {
+                throw new IllegalArgumentException("expected ',' or ']' but noting found");
+            }
+            if (c != ',' && c != ']') {
+                throw new IllegalArgumentException("expected ',' or ']' at %d pos but found '%s'".formatted(i, c));
+            }
+
+            // handle all end char(']') if we meet
+            // and go to next sep char(',')
+            while (i < len && curDimension > 0 && c == ']') {
+                curDimension--;
+                i++;
+                stk.pop();
+                // cur = stk.peek();
+                if (!stk.isEmpty()) {
+                    // actually we don't need to check whether stack
+                    // is empty, here is for IDE code checking for NPE
+                    cur = stk.peek();
+                }
+                // skip white spaces
+                while (i < len && Character.isWhitespace(c = s.charAt(i))) {
+                    i++;
+                }
+            }
+            if (i == len) {
+                break;
+            }
+            // expected ','
+            if (c != ',') {
+                throw new IllegalArgumentException("expected ',' at %d pos but found '%s'".formatted(i, c));
+            }
+            i++;
+        }
+
+        if (curDimension > dimension) {
+            throw new IllegalArgumentException("too many '[' at %d pos that make array dimension > limit".formatted(i));
+        }
+        if (curDimension > 0) {
+            throw new IllegalArgumentException("expected ']' but the array is end");
+        }
+        if (i < len) {
+            throw new IllegalArgumentException("the array is end but found '%s'...".formatted(s.charAt(i)));
+        }
+        return root;
+    }
+
+    private static int scanOneElement(int begin, String s, ArrayNode parent, int allowElementType) {
+        int i = begin;
+        char c = s.charAt(i);
+        if (c == '"') {
+            if ((allowElementType & STRING_TYPE) == 0) {
+                throw new IllegalArgumentException("the \"string\" element is not allowed");
+            }
+            String val = s.substring(i, (i = scanString(i, s)));
+            parent.appendChild(new StringNode(val));
+        } else if (c == '0' || c == '-' || ('1' <= c && c <= '9')) {
+            if ((allowElementType & NUMBER_TYPE) == 0) {
+                throw new IllegalArgumentException("the \"number\" element is not allowed");
+            }
+            String val = s.substring(i, (i = scanNumber(i, s)));
+            parent.appendChild(new NumberNode(val));
+        } else {
+            throw new IllegalArgumentException(
+                    "expected '\"' or '-' or '0'~'9' at %d pos but found '%s'".formatted(i, c)
+            );
+        }
+        return i;
+    }
+
+    private static int scanNumber(int being, String s) {
+        int i = being, len = s.length();
+        char c = s.charAt(i);
+        if (c == '-' && i < len - 1) {
+            c = s.charAt(++i);
+        }
+        if (!Character.isDigit(c)) {
+            throw new IllegalArgumentException("expected '0'~'9' at %d pos but found '%s'".formatted(i, c));
+        }
+        if (c == '0' && i < len - 1 && Character.isDigit(s.charAt(++i))) {
+            throw new IllegalArgumentException("expected '1'~'9' at %d pos but found 0".formatted(i));
+        }
+        while (i < len && Character.isDigit(s.charAt(i))) {
+            i++;
+        }
+        return i;
+    }
+
+    private static int scanString(int begin, String s) {
+        int i = begin + 1, len = s.length();
+        while (i < len) {
+            while (i < len && s.charAt(i) != '"') {
+                i++;
+            }
+            if (s.charAt(i - 1) != '\\') {
+                break;
+            }
+            i++;
+        }
+        if (i == len) {
+            throw new IllegalArgumentException(
+                    "expected '%s' at %d pos when handling the string(%s) beginning at '%d' pos"
+                            .formatted('"', i, s.substring(begin, i), begin)
+            );
+        }
+        return i + 1;
+    }
+}
+
+class NumberNode extends ElementNode<Number> {
+
+    NumberNode(String val) {
+        super(val);
+    }
+
+    @Override
+    protected Number parse(String val) {
+        return Long.valueOf(val);
+    }
+
+    @Override
+    public String toString() {
+        return getVal().toString() + "(Number)";
+    }
+}
+
+class StringNode extends ElementNode<String> {
+
+    StringNode(String val) {
+        super(val);
+    }
+
+    @Override
+    protected String parse(String val) {
+        int len = val.length();
+        if (val.charAt(0) != '"' && val.charAt(len - 1) != '"') {
+            throw new IllegalStateException("can not parse '%s' to string val because it isn't wrapped by '\"'");
+        }
+        val = val.substring(1, len - 1);
+        return val.replaceAll("\\\\\"", "\"");
+    }
+
+    @Override
+    public String toString() {
+        return getVal() + "(String)";
+    }
+}
