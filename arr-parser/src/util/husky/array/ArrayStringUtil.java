@@ -42,6 +42,47 @@ public class ArrayStringUtil {
         return nodeTo2dList(arrayNode, elementToNumberThen(Number::longValue));
     }
 
+    public static String[] getStringArray(String s) {
+        return stringListToArray(getStringList(s));
+    }
+
+    public static String[][] getString2dArray(String s) {
+        return getString2dList(s).stream()
+                .map(ArrayStringUtil::stringListToArray)
+                .toArray(String[][]::new);
+    }
+
+    public static int[] getIntArray(String s) {
+        return intListToArray(getIntList(s));
+    }
+
+    public static int[][] getInt2dArray(String s) {
+        return getInt2dList(s).stream()
+                .map(ArrayStringUtil::intListToArray)
+                .toArray(int[][]::new);
+    }
+
+    public static long[] getLongArray(String s) {
+        return longListToArray(getLongList(s));
+    }
+
+    public static long[][] getLong2dArray(String s) {
+        return getLong2dList(s).stream()
+                .map(ArrayStringUtil::longListToArray)
+                .toArray(long[][]::new);
+    }
+
+    private static String[] stringListToArray(List<String> list) {
+        return list.toArray(String[]::new);
+    }
+
+    private static int[] intListToArray(List<Integer> list) {
+        return list.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    private static long[] longListToArray(List<Long> list) {
+        return list.stream().mapToLong(Long::longValue).toArray();
+    }
 
     private static String elementToString(ElementNode<?> elementNode) {
         if (elementNode instanceof StringNode node) {

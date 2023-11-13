@@ -2,9 +2,11 @@ package util.husky.array;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
@@ -64,64 +66,6 @@ public class ArrayStringUtilTest {
             "[[\"hello->\"world\"\"]]"
     );
 
-    List<TestCase<List<String>>> stringArrayTestCases = List.of(
-            new TestCase<>(
-                    "[\"ab\", \"b\"]",
-                    List.of("ab", "b")
-            ),
-            new TestCase<>(
-                    "[\"print\", \"(\\\"\", \"hello world!\", \"\\\")\"]",
-                    List.of("print", "(\"", "hello world!", "\")")
-            )
-    );
-
-    List<TestCase<List<List<String>>>> string2dArrayTestCases = List.of(
-            new TestCase<>(
-                    "[[\"a\", \"ba\"],[\"ad\", \"b\"]]",
-                    List.of(List.of("a", "ba"), List.of("ad", "b"))
-            ),
-            new TestCase<>(
-                    "[[\"a\", \"ba\"],[\"ad\", \"b\"],[\"print\", \"(\\\"\", \"hello world!\", \"\\\")\"]]",
-                    List.of(List.of("a", "ba"), List.of("ad", "b"), List.of("print", "(\"", "hello world!", "\")"))
-            )
-    );
-
-    List<TestCase<List<Integer>>> intArrayTestCases = List.of(
-            new TestCase<>(
-                    "[1]",
-                    List.of(1)
-            ),
-            new TestCase<>(
-                    "[1,2,12]",
-                    List.of(1, 2, 12)
-            ),
-            new TestCase<>(
-                    "[1, 2,  12]",
-                    List.of(1, 2, 12)
-            ),
-            new TestCase<>(
-                    "[-1,-2,-3]",
-                    List.of(-1, -2, -3)
-            )
-    );
-
-    List<TestCase<List<List<Integer>>>> int2dArrayTestCases = List.of(
-            new TestCase<>("[[1,2],[3,4]]",
-                    List.of(List.of(1, 2), List.of(3, 4))),
-            new TestCase<>("[[4,2,1,2]]",
-                    List.of(List.of(4, 2, 1, 2))
-            ),
-            new TestCase<>("[[-1,-2,-3]]",
-                    List.of(List.of(-1, -2, -3))
-            ),
-            new TestCase<>("[[-1,-2],[-3]]",
-                    List.of(List.of(-1, -2), List.of(-3))
-            ),
-            new TestCase<>("[[-1],[-2,-3]]",
-                    List.of(List.of(-1), List.of(-2, -3))
-            )
-    );
-
     @Test
     public void anyArray() {
         List<String> anyArray = List.of(
@@ -175,99 +119,195 @@ public class ArrayStringUtilTest {
 
     @Test
     public void intArrayString() {
-        for (TestCase<List<Integer>> testcase : intArrayTestCases) {
-            String input = testcase.input;
-            List<Integer> expected = testcase.expected;
-            List<Integer> actual = ArrayStringUtil.getIntList(input);
-            assertEquals(expected, actual);
-        }
+        var arrayStrings = generateArrayStrings(10, 100,
+                randomIntGenerator(-98765, 12458));
+        assertDeserialization(arrayStrings, ArrayStringUtil::getIntList, this::listToString);
+        assertDeserialization(arrayStrings, ArrayStringUtil::getIntArray, this::arrayToString);
     }
 
     @Test
     public void int2dArrayString() {
-        for (TestCase<List<List<Integer>>> testcase : int2dArrayTestCases) {
-            String input = testcase.input;
-            List<List<Integer>> expected = testcase.expected;
-            List<List<Integer>> actual = ArrayStringUtil.getInt2dList(input);
-            assertEquals(expected, actual);
-        }
+        var arrayStrings = generate2dArrayStrings(3, 20,
+                randomIntGenerator(-10000, 50000));
+        assertDeserialization(arrayStrings, ArrayStringUtil::getInt2dList, this::listListToString);
+        assertDeserialization(arrayStrings, ArrayStringUtil::getInt2dArray, this::arrayToString);
     }
 
     @Test
     public void longArrayString() {
-        Random random = new Random();
-        int testCaseNum = random.nextInt(20);
-        List<TestCase<List<Long>>> testCases = new ArrayList<>();
-        for (int i = 0; i < testCaseNum; i++) {
-            int amount = random.nextInt(100);
-            List<Long> expected = randomLongList(amount);
-            testCases.add(new TestCase<>(expected.toString(), expected));
-        }
-
-        for (TestCase<List<Long>> testCase : testCases) {
-            String input = testCase.input;
-            List<Long> expected = testCase.expected;
-            List<Long> actual = ArrayStringUtil.getLongList(input);
-            System.out.println(input);
-            assertEquals(expected, actual);
-        }
+        var arrayStrings = generateArrayStrings(100, 200,
+                randomLongGenerator(-100000000000L, 10000000000000L));
+        assertDeserialization(arrayStrings, ArrayStringUtil::getLongList, this::listToString);
+        assertDeserialization(arrayStrings, ArrayStringUtil::getLongArray, this::arrayToString);
     }
 
     @Test
     public void long2dArrayString() {
-        Random random = new Random();
-        int testCaseNum = random.nextInt(20);
-        List<TestCase<List<List<Long>>>> testCases = new ArrayList<>();
-        for (int i = 0; i < testCaseNum; i++) {
-            int innerListCnt = random.nextInt(10);
-            List<List<Long>> expected = new ArrayList<>();
-            for (int j = 0; j < innerListCnt; j++) {
-                int amount = random.nextInt(10);
-                expected.add(randomLongList(amount));
-            }
-            testCases.add(new TestCase<>(expected.toString(), expected));
-        }
-
-        for (TestCase<List<List<Long>>> testCase : testCases) {
-            String input = testCase.input;
-            List<List<Long>> expected = testCase.expected;
-            List<List<Long>> actual = ArrayStringUtil.getLong2dList(input);
-            System.out.println(input);
-            assertEquals(expected, actual);
-        }
-    }
-
-    static List<Long> randomLongList(int n) {
-        n = (int) (Math.random() * n);
-        List<Long> list = new ArrayList<>();
-        Random r = new Random();
-        for (int i = 0; i < n; i++) {
-            list.add(r.nextLong(Integer.MAX_VALUE, Long.MAX_VALUE));
-        }
-        return list;
+        var arrayStrings = generate2dArrayStrings(5, 10,
+                randomLongGenerator(-(1 << 30), 1 << 30));
+        assertDeserialization(arrayStrings, ArrayStringUtil::getLong2dList, this::listListToString);
+        assertDeserialization(arrayStrings, ArrayStringUtil::getLong2dArray, this::arrayToString);
     }
 
     @Test
     public void stringArrayString() {
-        for (TestCase<List<String>> testcase : stringArrayTestCases) {
-            String input = testcase.input;
-            List<String> expected = testcase.expected;
-            List<String> actual = ArrayStringUtil.getStringList(input);
-            assertEquals(expected, actual);
-        }
+        var arrayStrings = generateArrayStrings(10, 10, randomStringGenerator(5));
+        assertDeserialization(arrayStrings, ArrayStringUtil::getStringList, this::listToString);
+        assertDeserialization(arrayStrings, ArrayStringUtil::getStringArray, this::arrayToString);
     }
 
     @Test
     public void string2dArrayString() {
-        for (TestCase<List<List<String>>> testcase : string2dArrayTestCases) {
-            String input = testcase.input;
-            List<List<String>> expected = testcase.expected;
-            List<List<String>> actual = ArrayStringUtil.getString2dList(input);
-            assertEquals(expected, actual);
-        }
+        var arrayStrings = generate2dArrayStrings(10, 10, randomStringGenerator(5));
+        assertDeserialization(arrayStrings, ArrayStringUtil::getString2dList, this::listListToString);
+        assertDeserialization(arrayStrings, ArrayStringUtil::getString2dArray, this::arrayToString);
+    }
+
+    public String wrapStringWithQuotes(String s) {
+        return "\"" + s + "\"";
     }
 
 
-    record TestCase<T>(String input, T expected) {
+    long randomSeed = 54687491234L;
+
+
+    public Supplier<String> randomStringGenerator(int maxLength) {
+        Random random = new Random(randomSeed);
+        return () -> {
+            int n = random.nextInt(maxLength);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < n; i++) {
+                char c = (char) ('a' + random.nextInt(26));
+                sb.append(c);
+            }
+            return sb.toString();
+        };
+    }
+
+    private Supplier<Long> randomLongGenerator(long origin, long bound) {
+        Random random = new Random(randomSeed);
+        return () -> random.nextLong(origin, bound);
+    }
+
+    private Supplier<Integer> randomIntGenerator(int origin, int bound) {
+        Random random = new Random(randomSeed);
+        return () -> random.nextInt(origin, bound);
+    }
+
+
+    private <T> void assertDeserialization(List<String> arrayStrings,
+                                           Function<String, T> deserializer,
+                                           Function<T, String> serializer) {
+        for (String arrayString : arrayStrings) {
+            assertDeserialization(arrayString, deserializer, serializer);
+        }
+    }
+
+    private <T> void assertDeserialization(String input,
+                                           Function<String, T> deserialize,
+                                           Function<T, String> serialize) {
+        assertEquals(input, serialize.apply(deserialize.apply(input)));
+    }
+
+    private <T> List<String> generate2dArrayStrings(int caseNum, int arrayMaxSize, Supplier<T> valueGenerator) {
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < caseNum; i++) {
+            List<T> list = generateList(arrayMaxSize, valueGenerator);
+            StringJoiner input = new StringJoiner(",", "[", "]");
+            int toIndex = list.size();
+            while (toIndex > 0) {
+                int fromIndex = (int) (Math.random() * toIndex);
+                List<T> sublist = list.subList(fromIndex, toIndex);
+                input.add(listToString(sublist));
+                toIndex = fromIndex;
+            }
+            result.add(input.toString());
+        }
+        return result;
+    }
+
+    private <T> List<String> generateArrayStrings(int caseNum, int arrayMaxSize, Supplier<T> valueGenerator) {
+        List<String> result = new ArrayList<>(caseNum);
+        for (int i = 0; i < caseNum; i++) {
+            List<T> list = generateList(arrayMaxSize, valueGenerator);
+            String input = listToString(list);
+            result.add(input);
+        }
+        return result;
+    }
+
+
+    private <T> List<T> generateList(int limitSize, Supplier<T> elementValueGenerator) {
+        Random random = new Random(randomSeed);
+        int size = random.nextInt(limitSize);
+        List<T> list = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            T e = elementValueGenerator.get();
+            if (e == null) {
+                throw new IllegalStateException("generated element can not be null");
+            }
+            list.add(e);
+        }
+        return list;
+    }
+
+    private String arrayToString(Object arrObject) {
+        return switch (arrObject) {
+            case int[] intArray -> intArrayToString(intArray);
+            case long[] longArray -> longArrayToString(longArray);
+            case Object[] objectArray -> objectArrayToString(objectArray);
+            case null, default -> throw new IllegalStateException("Unexpected value: " + arrObject);
+        };
+    }
+
+    private String objectArrayToString(Object[] arr) {
+        return Arrays.stream(arr)
+                .map(this::objectArrayElementToString)
+                .collect(joinStringAsArray());
+    }
+
+    private String objectArrayElementToString(Object obj) {
+        if (obj.getClass().isArray()) {
+            return arrayToString(obj);
+        }
+        if (obj instanceof String str) {
+            return wrapStringWithQuotes(str);
+        }
+        return Objects.toString(obj);
+    }
+
+
+    private String longArrayToString(long[] arr) {
+        return Arrays.stream(arr)
+                .mapToObj(String::valueOf)
+                .collect(joinStringAsArray());
+    }
+
+    private String intArrayToString(int[] arr) {
+        return Arrays.stream(arr)
+                .mapToObj(String::valueOf)
+                .collect(joinStringAsArray());
+    }
+
+    private static Collector<CharSequence, ?, String> joinStringAsArray() {
+        return Collectors.joining(",", "[", "]");
+    }
+
+    private <T> String listListToString(List<List<T>> list) {
+        return listToString(list, this::listToString);
+    }
+
+    private String listToString(List<?> list) {
+        return listToString(list, this::objectListElementToString);
+    }
+
+    private String objectListElementToString(Object obj) {
+        return objectArrayElementToString(obj);
+    }
+
+    private <T> String listToString(List<T> list, Function<T, String> elementToStringFunc) {
+        return list.stream()
+                .map(elementToStringFunc)
+                .collect(joinStringAsArray());
     }
 }
