@@ -27,6 +27,51 @@ public class Tester {
         shell.process(testData);
     }
 
+    /**
+     * This method is used to test a single target method.
+     * <p>
+     * It takes a {@linkplain Reader} to read input of test data and a Config
+     * to define the argument list and testing code for the
+     * target method.
+     * <p>
+     * The config is a {@linkplain Consumer} interface which takes an
+     * {@linkplain MethodProxyRegistry<T>} object to provide methods
+     * to define the argument list and testing code for the target
+     * method.
+     * The argument list tells that how it should convert input into
+     * appropriate arguments for the target method.
+     * The testing code tells that how the target method should be
+     * tested with the arguments.
+     * <p>
+     * <h3>Example</h3>
+     * <pre>
+     * class Solution {
+     *     public int[] twoSum(int[] nums, int target) {...}
+     * }
+     * ...
+     * String input = &quot;&quot;&quot;
+     *         [1,2,3,5,8]
+     *         10
+     *         [1,2,3,5,8]
+     *         6
+     *         &quot;&quot;&quot;;
+     * // note: you can read input from standard input from console
+     * Reader reader = new StringReader(input);
+     * // config argument list and testing code and start testing
+     * Tester.testForMethod(reader, config -&gt; config
+     *         .addMethod(&quot;twoSum&quot;,
+     *                 ParamType.INT_ARRAY,
+     *                 ParamType.INT)
+     *         .impl((__, params) -&gt; new Solution()
+     *                 .twoSum((int[]) params[0],
+     *                         (int) params[1]))
+     * );
+     * </pre>
+     *
+     * @param testData Reader to read test data
+     * @param config Config to defined method argument list and testing code
+     * @param <T> The type of the instance that may be used to invocation
+     */
     public static <T> void testForMethod(Reader testData, Consumer<MethodProxyRegistry<T>> config) {
         var driverFactory = new ObjectCommandDriverFactory<T>();
         // apply provided config to MethodProxyRegistry
