@@ -79,7 +79,7 @@ public class TestUtil {
         var registry = driverFactory.getMethodProxyRegistry();
         config.accept(registry);
 
-        // calculate the number of arguments separated by a line of input,
+        // calculate the number of arguments separated by a line of input
         var method = registry.getMethodRegistrationByDefault();
         if (method == null) {
             throw new IllegalStateException("No method is registered!");
