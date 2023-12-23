@@ -152,51 +152,15 @@ public class ArrayStringUtilTest {
     @Test
     public void stringArrayString() {
         var arrayStrings = generateArrayStrings(10, 10, randomStringGenerator(5));
-        Function<String, List<String>> getStringList = ArrayStringUtil::getStringList;
-        Function<String, String[]> getStringArray = ArrayStringUtil::getStringArray;
-        assertDeserialization(
-                arrayStrings,
-                getStringList.andThen(original -> original.stream()
-                        .map(this::wrapStringWithQuotes)
-                        .toList()
-                ),
-                this::listToString
-        );
-        assertDeserialization(
-                arrayStrings,
-                getStringArray.andThen(original -> Arrays.stream(original)
-                        .map(this::wrapStringWithQuotes)
-                        .toArray()
-                ),
-                this::arrayToString
-        );
+        assertDeserialization(arrayStrings, ArrayStringUtil::getStringList, this::listToString);
+        assertDeserialization(arrayStrings, ArrayStringUtil::getStringArray, this::arrayToString);
     }
 
     @Test
     public void string2dArrayString() {
         var arrayStrings = generate2dArrayStrings(10, 10, randomStringGenerator(5));
-        Function<String, List<List<String>>> getString2dList = ArrayStringUtil::getString2dList;
-        Function<String, String[][]> getString2dArray = ArrayStringUtil::getString2dArray;
-        assertDeserialization(
-                arrayStrings,
-                getString2dList.andThen(listList -> listList.stream()
-                        .map(list -> list.stream()
-                                .map(this::wrapStringWithQuotes)
-                                .toList())
-                        .toList()
-                ),
-                this::listListToString
-        );
-        assertDeserialization(
-                arrayStrings,
-                getString2dArray.andThen(arrArray -> Arrays.stream(arrArray)
-                        .map(array -> Arrays.stream(array)
-                                .map(this::wrapStringWithQuotes)
-                                .toArray())
-                        .toArray()
-                ),
-                this::arrayToString
-        );
+        assertDeserialization(arrayStrings, ArrayStringUtil::getString2dList, this::listListToString);
+        assertDeserialization(arrayStrings, ArrayStringUtil::getString2dArray, this::arrayToString);
     }
 
     public String wrapStringWithQuotes(String s) {
@@ -212,12 +176,10 @@ public class ArrayStringUtilTest {
         return () -> {
             int n = random.nextInt(maxLength);
             StringBuilder sb = new StringBuilder();
-            sb.append('"');
             for (int i = 0; i < n; i++) {
                 char c = (char) ('a' + random.nextInt(26));
                 sb.append(c);
             }
-            sb.append('"');
             return sb.toString();
         };
     }
@@ -308,6 +270,9 @@ public class ArrayStringUtilTest {
         if (obj.getClass().isArray()) {
             return arrayToString(obj);
         }
+        if (obj instanceof String str) {
+            return wrapStringWithQuotes(str);
+        }
         return Objects.toString(obj);
     }
 
@@ -333,7 +298,11 @@ public class ArrayStringUtilTest {
     }
 
     private String listToString(List<?> list) {
-        return listToString(list, Objects::toString);
+        return listToString(list, this::objectListElementToString);
+    }
+
+    private String objectListElementToString(Object obj) {
+        return objectArrayElementToString(obj);
     }
 
     private <T> String listToString(List<T> list, Function<T, String> elementToStringFunc) {
