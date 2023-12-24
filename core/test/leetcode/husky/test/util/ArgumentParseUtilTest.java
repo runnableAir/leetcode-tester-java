@@ -203,45 +203,6 @@ public class ArgumentParseUtilTest {
         Assert.assertArrayEquals(expected, list);
     }
 
-    @Test
-    public void testCheckArrayOfAnyArray() {
-        List<String> anyArray = List.of(
-                "[\"abc\", \"abc\"]",
-                "[\"abc\", \"abc\", 1]",
-                "[]"
-        );
-        anyArray.forEach(s -> System.out.println(ArgumentParseUtil.checkArrayLiked(s, 1, ArgumentParseUtil.NUMBER_TYPE | ArgumentParseUtil.STRING_TYPE)));
-    }
-
-    @Test
-    public void testCheckArrayOfAny2dArray() {
-        List<String> any2dArray = List.of(
-                "[[\"abc\", \"abc\"],[123,1234556789,-987]]",
-                "[]"
-        );
-        any2dArray.forEach(s -> System.out.println(ArgumentParseUtil.checkArrayLiked(s, 2, ArgumentParseUtil.NUMBER_TYPE | ArgumentParseUtil.STRING_TYPE)));
-    }
-
-    @Test
-    public void testCheckArrayOfIntArray() {
-        List<String> intArray = List.of(
-                "[123,  -233\n\t, 3]",
-                "[1,2,-1,2,0]",
-                "[]"
-        );
-        intArray.forEach(s -> System.out.println(ArgumentParseUtil.checkArrayLiked(s, 1, ArgumentParseUtil.NUMBER_TYPE)));
-    }
-
-    @Test
-    public void testCheckArrayOfInt2dArray() {
-        List<String> int2dArray = List.of(
-                "[ [123  , -233 ] ,   [3 ] ]",
-                "[[123 , -233] ]",
-                "[]"
-        );
-        int2dArray.forEach(s -> System.out.println(ArgumentParseUtil.checkArrayLiked(s, 2, ArgumentParseUtil.NUMBER_TYPE)));
-    }
-
     private static Consumer<String> testerOfInvalidArrayParsing(Consumer<String> arrayLikedParser) {
         return str -> {
             System.out.println(str);

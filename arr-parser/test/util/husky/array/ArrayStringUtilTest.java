@@ -85,6 +85,7 @@ public class ArrayStringUtilTest {
         List<String> any2dArray = List.of(
                 "[[\"abc\", \"abc\"],[123,1234556789,-987]]",
                 "[ [ \"abc\",  1, 0, -2 ],  [999999999999999], [] ]",
+                "[[\"a\", \"ba\"],[\"ad\", \"b\"],[\"print\", \"(\\\"\", \"hello world!\", \"\\\")\"]]",
                 "[]"
         );
         any2dArray.forEach(input -> {
