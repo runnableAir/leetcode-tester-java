@@ -117,6 +117,109 @@ public class ArrayStringUtil {
                 .toList();
     }
 
+    // 解析维度不唯一的数组字符串，返回解析后的数组节点
+    static ArrayNode buildAnyArrayNode(String s) {
+        int allowElementType = NUMBER_TYPE | STRING_TYPE;
+        if (s.isEmpty()) {
+            throw new IllegalArgumentException("can not convert the string as an array because it is empty");
+        }
+        int len = s.length();
+        if (s.charAt(0) != '[' || s.charAt(len - 1) != ']') {
+            throw new IllegalArgumentException(
+                    "can not convert the string as an array because it isn't wrapped in \"[]\""
+            );
+        }
+
+        Deque<ArrayNode> stk = new ArrayDeque<>();
+        ArrayNode root = new ArrayNode();
+        ArrayNode cur = root;
+        stk.push(root);
+        int curDimension = 1;
+        int dimension = 0x3f3f3f; // give it a limit
+        int i = 1;
+        // each loop we scan and make a node
+        while (i < len && curDimension > 0 && curDimension <= dimension) {
+            char c;
+            // skip white spaces
+            if (Character.isWhitespace(c = s.charAt(i))) {
+                i++;
+                continue;
+            }
+            // into a new array (push node)
+            if (c == '[') {
+                curDimension++;
+                // new child node
+                ArrayNode child = new ArrayNode();
+                cur.appendChild(child);
+                cur = child;
+                stk.push(child);
+                i++;
+                continue;
+            }
+
+            /*
+             * handle string or number element node if the array
+             * IS NOT empty.
+             *
+             * if the array IS NOT empty:
+             * (1) we already scanned some element nodes of current node
+             * (2) or we scanned no element node, and we don't meet the
+             *     end char(']') which means no element node found
+             */
+            if (!cur.getChildren().isEmpty() || c != ']') {
+                i = scanOneElement(i, s, cur, allowElementType);
+            }
+
+            // skip white spaces
+            while (i < len && Character.isWhitespace(c = s.charAt(i))) {
+                i++;
+            }
+            // expected ',' or ']'
+            if (i == len) {
+                throw new IllegalArgumentException("expected ',' or ']' but noting found");
+            }
+            if (c != ',' && c != ']') {
+                throw new IllegalArgumentException("expected ',' or ']' at %d pos but found '%s'".formatted(i, c));
+            }
+
+            // handle all end char(']') if we meet
+            // and go to next sep char(',')
+            while (i < len && curDimension > 0 && c == ']') {
+                curDimension--;
+                i++;
+                stk.pop();
+                // cur = stk.peek();
+                if (!stk.isEmpty()) {
+                    // actually we don't need to check whether stack
+                    // is empty, here is for IDE code checking for NPE
+                    cur = stk.peek();
+                }
+                // skip white spaces
+                while (i < len && Character.isWhitespace(c = s.charAt(i))) {
+                    i++;
+                }
+            }
+            if (i == len) {
+                break;
+            }
+            // expected ','
+            if (c != ',') {
+                throw new IllegalArgumentException("expected ',' at %d pos but found '%s'".formatted(i, c));
+            }
+            i++;
+        }
+
+        if (curDimension > dimension) {
+            throw new IllegalArgumentException("too many '[' at %d pos that make array dimension > limit".formatted(i));
+        }
+        if (curDimension > 0) {
+            throw new IllegalArgumentException("expected ']' but the array is end");
+        }
+        if (i < len) {
+            throw new IllegalArgumentException("the array is end but found '%s'...".formatted(s.charAt(i)));
+        }
+        return root;
+    }
 
     static ArrayNode buildArrayNode(String s, int dimension, int allowElementType) {
         if (dimension == 0) {
