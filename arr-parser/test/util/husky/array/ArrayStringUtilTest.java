@@ -67,6 +67,46 @@ public class ArrayStringUtilTest {
     );
 
     @Test
+    public void arrayNodeBuilding() {
+        var intArrayStr = """
+                [1,2,3]""";
+        var intArrayNode = ArrayStringUtil.buildArrayNode(intArrayStr, 1, INT_TYPE);
+        var intArrayNodeAsStr = intArrayNode.asString();
+        System.out.println("=> " + intArrayStr);
+        System.out.println("<= " + intArrayNode);
+        System.out.println("(asString) <= " + intArrayNodeAsStr);
+        assertEquals(intArrayStr, intArrayNodeAsStr);
+
+        var strArrayStr = """
+                ["aaa","bbb","ccc","what the \\"fuck\\""]""";
+        var strArrayNode = ArrayStringUtil.buildArrayNode(strArrayStr, 1, STRING_TYPE);
+        String strArrayNodeAsStr = strArrayNode.asString();
+        System.out.println("=> " + strArrayStr);
+        System.out.println("<= " + strArrayNode);
+        System.out.println("(asString) <= " + strArrayNodeAsStr);
+        assertEquals(strArrayStr, strArrayNodeAsStr);
+
+        var int2dArrayStr = """
+                [[1],[2,3],[3]]""";
+        var int2dArrayNode = ArrayStringUtil.buildArrayNode(int2dArrayStr, 2, INT_TYPE);
+        String int2dArrayNodeAsStr = int2dArrayNode.asString();
+        System.out.println("=> " + int2dArrayStr);
+        System.out.println("<= " + int2dArrayNode);
+        System.out.println("(asString) <= " + int2dArrayNodeAsStr);
+        assertEquals(int2dArrayStr, int2dArrayNodeAsStr);
+
+        // [["a","b","c"],["def","G","[1,2,3,[4,5],[],[\"HI\"]]"]]
+        var str2dArrayStr = """
+                [["a","b","c"],["def","G","[1,2,3,[4,5],[],[\\"HI\\"]]"]]""";
+        var str2dArrayNode = ArrayStringUtil.buildArrayNode(str2dArrayStr, 2, STRING_TYPE);
+        String str2dArrayNodeAsStr = str2dArrayNode.asString();
+        System.out.println("=> " + str2dArrayStr);
+        System.out.println("<= " + str2dArrayNode);
+        System.out.println("(asString) <= " + str2dArrayNodeAsStr);
+        assertEquals(str2dArrayStr, str2dArrayNodeAsStr);
+    }
+
+    @Test
     public void anyArray() {
         List<String> anyArray = List.of(
                 "[\"abc\", \"abc\"]",

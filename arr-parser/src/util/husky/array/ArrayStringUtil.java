@@ -308,6 +308,11 @@ class NumberNode extends ElementNode<Number> {
     public String toString() {
         return getVal().toString() + "(Number)";
     }
+
+    @Override
+    public String asString() {
+        return getVal().toString();
+    }
 }
 
 class StringNode extends ElementNode<String> {
@@ -329,5 +334,11 @@ class StringNode extends ElementNode<String> {
     @Override
     public String toString() {
         return getVal() + "(String)";
+    }
+
+    @Override
+    public String asString() {
+        String escapedString = getVal().replaceAll("\"", "\\\\\"");
+        return "\"" + escapedString + "\"";
     }
 }
