@@ -117,113 +117,39 @@ public class ArrayStringUtil {
                 .toList();
     }
 
-    // 解析维度不唯一的数组字符串，返回解析后的数组节点
+    // 解析维度不唯一、类型不唯一的数组字符串，返回解析后的数组节点
+
+    /**
+     * Build & return an array node represented by the source
+     * string {@code s}.
+     * <p>
+     * The returned array node may have an unspecified number of
+     * dimensions and may contain elements of an unspecified type,
+     * allowing for flexibility in representing array data.
+     *
+     * @param s the source string to express an array structure data
+     * @return an array node object represented by the source string
+     * {@code s}
+     */
     static ArrayNode buildAnyArrayNode(String s) {
-        int allowElementType = NUMBER_TYPE | STRING_TYPE;
-        if (s.isEmpty()) {
-            throw new IllegalArgumentException("can not convert the string as an array because it is empty");
-        }
-        int len = s.length();
-        if (s.charAt(0) != '[' || s.charAt(len - 1) != ']') {
-            throw new IllegalArgumentException(
-                    "can not convert the string as an array because it isn't wrapped in \"[]\""
-            );
-        }
-
-        Deque<ArrayNode> stk = new ArrayDeque<>();
-        ArrayNode root = new ArrayNode();
-        ArrayNode cur = root;
-        stk.push(root);
-        int curDimension = 1;
-        int dimension = 0x3f3f3f; // give it a limit
-        int i = 1;
-        // each loop we scan and make a node
-        while (i < len && curDimension > 0 && curDimension <= dimension) {
-            char c;
-            // skip white spaces
-            if (Character.isWhitespace(c = s.charAt(i))) {
-                i++;
-                continue;
-            }
-            // into a new array (push node)
-            if (c == '[') {
-                curDimension++;
-                // new child node
-                ArrayNode child = new ArrayNode();
-                cur.appendChild(child);
-                cur = child;
-                stk.push(child);
-                i++;
-                continue;
-            }
-
-            /*
-             * handle string or number element node if the array
-             * IS NOT empty.
-             *
-             * if the array IS NOT empty:
-             * (1) we already scanned some element nodes of current node
-             * (2) or we scanned no element node, and we don't meet the
-             *     end char(']') which means no element node found
-             */
-            if (!cur.getChildren().isEmpty() || c != ']') {
-                i = scanOneElement(i, s, cur, allowElementType);
-            }
-
-            // skip white spaces
-            while (i < len && Character.isWhitespace(c = s.charAt(i))) {
-                i++;
-            }
-            // expected ',' or ']'
-            if (i == len) {
-                throw new IllegalArgumentException("expected ',' or ']' but noting found");
-            }
-            if (c != ',' && c != ']') {
-                throw new IllegalArgumentException("expected ',' or ']' at %d pos but found '%s'".formatted(i, c));
-            }
-
-            // handle all end char(']') if we meet
-            // and go to next sep char(',')
-            while (i < len && curDimension > 0 && c == ']') {
-                curDimension--;
-                i++;
-                stk.pop();
-                // cur = stk.peek();
-                if (!stk.isEmpty()) {
-                    // actually we don't need to check whether stack
-                    // is empty, here is for IDE code checking for NPE
-                    cur = stk.peek();
-                }
-                // skip white spaces
-                while (i < len && Character.isWhitespace(c = s.charAt(i))) {
-                    i++;
-                }
-            }
-            if (i == len) {
-                break;
-            }
-            // expected ','
-            if (c != ',') {
-                throw new IllegalArgumentException("expected ',' at %d pos but found '%s'".formatted(i, c));
-            }
-            i++;
-        }
-
-        if (curDimension > dimension) {
-            throw new IllegalArgumentException("too many '[' at %d pos that make array dimension > limit".formatted(i));
-        }
-        if (curDimension > 0) {
-            throw new IllegalArgumentException("expected ']' but the array is end");
-        }
-        if (i < len) {
-            throw new IllegalArgumentException("the array is end but found '%s'...".formatted(s.charAt(i)));
-        }
-        return root;
+        return buildAnyArrayNode(s, 1, 0x3f3f, STRING_TYPE | NUMBER_TYPE);
     }
 
-    static ArrayNode buildArrayNode(String s, int dimension, int allowElementType) {
-        if (dimension == 0) {
-            throw new IllegalArgumentException("the dimension of the array can not be zero");
+    /**
+     * Build & return an array node represented by the source
+     * string {@code s}
+     *
+     * @param s the source string to express an array structure data
+     * @param minDimension the mini dimension the array should have
+     * @param maxDimension the max dimension the array should have
+     * @param allowElementType the type of element which is allowed
+     * @return an array node object represented by the source string
+     * {@code s}
+     */
+    static ArrayNode buildAnyArrayNode(String s, int minDimension, int maxDimension, int allowElementType) {
+        if (!(minDimension <= maxDimension)) {
+            throw new IllegalArgumentException("minDimension(=%d) should be less than or equal to maxDimension(=%d)"
+                    .formatted(minDimension, maxDimension));
         }
         if (s.isEmpty()) {
             throw new IllegalArgumentException("can not convert the string as an array because it is empty");
@@ -235,7 +161,6 @@ public class ArrayStringUtil {
             );
         }
 
-
         Deque<ArrayNode> stk = new ArrayDeque<>();
         ArrayNode root = new ArrayNode();
         ArrayNode cur = root;
@@ -243,7 +168,7 @@ public class ArrayStringUtil {
         int curDimension = 1;
         int i = 1;
         // each loop we scan and make a node
-        while (i < len && curDimension > 0 && curDimension <= dimension) {
+        while (i < len && curDimension > 0 && curDimension <= maxDimension) {
             char c;
             // skip white spaces
             if (Character.isWhitespace(c = s.charAt(i))) {
@@ -274,10 +199,10 @@ public class ArrayStringUtil {
             if (!cur.getChildren().isEmpty() || c != ']') {
                 // ready to handle an element node but check
                 // if current dimension is enough at first
-                if (curDimension < dimension) {
+                if (curDimension < minDimension) {
                     throw new IllegalArgumentException(
                             "expected '[' but found '%s' at %d pos, because the array should be %d dimension"
-                                    .formatted(c, i, dimension)
+                                    .formatted(c, i, minDimension)
                     );
                 }
                 i = scanOneElement(i, s, cur, allowElementType);
@@ -322,7 +247,7 @@ public class ArrayStringUtil {
             i++;
         }
 
-        if (curDimension > dimension) {
+        if (curDimension > maxDimension) {
             throw new IllegalArgumentException("too many '[' at %d pos that make array dimension > limit".formatted(i));
         }
         if (curDimension > 0) {
@@ -332,6 +257,23 @@ public class ArrayStringUtil {
             throw new IllegalArgumentException("the array is end but found '%s'...".formatted(s.charAt(i)));
         }
         return root;
+    }
+
+    /**
+     * Build & return an array node represented by the source
+     * string {@code s}。
+     * <p>
+     * The returned array have a specified number of dimensions and
+     * contain elements of specified type.
+     *
+     * @param s the source string to express an array structure data
+     * @param dimension specified number of dimensions
+     * @param allowElementType the specified type of elements
+     * @return an array node object represented by the source string
+     * {@code s}
+     */
+    static ArrayNode buildArrayNode(String s, int dimension, int allowElementType) {
+        return buildAnyArrayNode(s, dimension, dimension, allowElementType);
     }
 
     private static int scanOneElement(int begin, String s, ArrayNode parent, int allowElementType) {
