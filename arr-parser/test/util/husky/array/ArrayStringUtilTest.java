@@ -10,8 +10,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
-import static util.husky.array.ArrayStringUtil.INT_TYPE;
-import static util.husky.array.ArrayStringUtil.STRING_TYPE;
+import static util.husky.array.ArrayStringUtil.*;
 
 public class ArrayStringUtilTest {
 
@@ -65,6 +64,41 @@ public class ArrayStringUtilTest {
             "[[\"1\", \"2], [\"hello\",\"world\"]]",
             "[[\"hello->\"world\"\"]]"
     );
+
+    @Test
+    public void anyArrayBuilding() {
+        var sourceText = """
+                []
+                [1,2]
+                [[1,2]]
+                [[1,2],[3,4]]
+                ["a1","b2"]
+                [["a1","b2"]]
+                [["a1","b2"],["c3","d4"]]
+                ["1 + 2","System.out.println(\\"Hello world!\\")"]
+                ["toArray(\\"[1,2,\\\\"java\\\\"]\\")"]
+                """;
+        var expectedOutputText = """
+                []
+                [1(Number), 2(Number)]
+                [[1(Number), 2(Number)]]
+                [[1(Number), 2(Number)], [3(Number), 4(Number)]]
+                [a1(String), b2(String)]
+                [[a1(String), b2(String)]]
+                [[a1(String), b2(String)], [c3(String), d4(String)]]
+                [1 + 2(String), System.out.println("Hello world!")(String)]
+                [toArray("[1,2,\\"java\\"]")(String)]
+                """;
+        StringBuilder output = new StringBuilder();
+        sourceText.lines()
+                .forEach(s -> {
+                    System.out.println("=> " + s);
+                    ArrayNode arrayNode = buildAnyArrayNode(s);
+                    System.out.println("<= " + arrayNode);
+                    output.append(arrayNode).append("\n");
+                });
+        assertEquals(expectedOutputText, output.toString());
+    }
 
     @Test
     public void anyArray() {

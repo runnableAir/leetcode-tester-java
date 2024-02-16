@@ -117,15 +117,15 @@ public class ArrayStringUtil {
                 .toList();
     }
 
-    // 解析维度不唯一、类型不唯一的数组字符串，返回解析后的数组节点
 
     /**
      * Build & return an array node represented by the source
      * string {@code s}.
      * <p>
      * The returned array node may have an unspecified number of
-     * dimensions and may contain elements of an unspecified type,
-     * allowing for flexibility in representing array data.
+     * dimensions and may contain elements of an unspecified type
+     * (string or number), allowing for flexibility in representing
+     * array data.
      *
      * @param s the source string to express an array structure data
      * @return an array node object represented by the source string
@@ -268,7 +268,7 @@ public class ArrayStringUtil {
      *
      * @param s the source string to express an array structure data
      * @param dimension specified number of dimensions
-     * @param allowElementType the specified type of elements
+     * @param allowElementType the specified type of elements (string or number)
      * @return an array node object represented by the source string
      * {@code s}
      */
