@@ -15,11 +15,66 @@ import java.util.function.Consumer;
 
 public class Tester {
 
-    public static <T> void testForCommands(Reader testData, Consumer<MethodProxyRegistry<T>> methodRegister) {
+    /**
+     * This method is used to test multi methods in a sequence
+     * <p>
+     * It takes a {@linkplain Reader} to read input of test data and a Config
+     * to define the argument lists and implementations of methods.
+     * <p>
+     * The config is a {@linkplain Consumer} interface which takes an
+     * {@linkplain MethodProxyRegistry<T>} object to provide methods
+     * to define the argument lists and implementations of methods.
+     * The argument list tells that how it should convert input into
+     * appropriate arguments for the target method.
+     * The implementation tells that how a target method should be
+     * tested with the arguments.
+     * <p>
+     * <h3>Example</h3>
+     * <pre>
+     * class LRUCache {
+     *     public LRUCache(int capacity) {
+     *         //...
+     *     }
+     *     public int get(int key) {
+     *         //...
+     *     }
+     *     public void put(int key, int value) {
+     *         //...
+     *     }
+     * }
+     * ....
+     * // test case text
+     * String text = &quot;&quot;&quot;
+     *         [&quot;LRUCache&quot;,&quot;put&quot;,&quot;put&quot;,&quot;get&quot;,&quot;put&quot;,&quot;get&quot;,&quot;put&quot;,&quot;get&quot;,&quot;get&quot;,&quot;get&quot;]
+     *         [[2],[1,1],[2,2],[1],[3,3],[2],[4,4],[1],[3],[4]]
+     *             &quot;&quot;&quot;;
+     * // note: you can read input from standard input from console
+     * Reader testData = new StringReader(text);
+     * Tester.&lt;LRUCache&gt;testForCommands(testData, config -&gt; config
+     *         // add constructor: LRUCache(int)
+     *         .addConstructor(&quot;LRUCache&quot;, ParamType.INT)
+     *         .impl(params -&gt; new DesignSolution.LRUCache((int) params[0]))
+     *         // add method: void put(int, int)
+     *         .addMethod(&quot;put&quot;,
+     *                 ParamType.INT,
+     *                 ParamType.INT)
+     *         .voidImpl((lruCache, params) -&gt; lruCache.put(
+     *                 (int) params[0],
+     *                 (int) params[1]))
+     *         // add method: int get(int)
+     *         .addMethod(&quot;get&quot;, ParamType.INT)
+     *         .impl((lruCache, params) -&gt; lruCache.get((int) params[0]))
+     * );
+     * </pre>
+     * @param testData Reader to read test data
+     * @param config Config to defined method argument list and testing code
+     * @param <T> The type of the instance that may be used to invocation
+     */
+    public static <T> void testForCommands(Reader testData, Consumer<MethodProxyRegistry<T>> config) {
         var driverFactory = new ObjectCommandDriverFactory<T>();
         // apply provided config to MethodProxyRegistry
         var registry = driverFactory.getMethodProxyRegistry();
-        methodRegister.accept(registry);
+        config.accept(registry);
 
         var commandReader = new MultiTaskCommandReader();
         var commandDriver = driverFactory.getCommonClassDriver();
