@@ -55,3 +55,60 @@ public class Main {
 }
 ```
 
+[leetcode.146. LRU Cache](https://leetcode.cn/problems/lru-cache/description/)
+
+```java
+class LRUCache {
+    public LRUCache(int capacity) {
+        //...
+    }
+
+    public int get(int key) {
+        //...
+    }
+
+    public void put(int key, int value) {
+        //...
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // test case text
+        String text = """
+                ["LRUCache","put","put","get","put","get","put","get","get","get"]
+                [[2],[1,1],[2,2],[1],[3,3],[2],[4,4],[1],[3],[4]]
+                    """;
+        Reader testData = new StringReader(text);
+
+        long startTime = System.currentTimeMillis();
+
+        // In the following you will register the methods and their implementations:
+        // a. LRUCache(int) [Constructor]
+        // b. void put(int, int)
+        // c. int get(int)
+
+        // TIPS: Explicitly specifying the generic type "T" of the method will help
+        // compiler recognize it. This will greatly assist in "code completion"
+        Tester.<LRUCache>testForCommands(testData, config -> config
+                // add constructor: LRUCache(int)
+                .addConstructor("LRUCache", ParamType.INT)
+                .impl(params -> new DesignSolution.LRUCache((int) params[0]))
+                // add method: void put(int, int)
+                .addMethod("put",
+                        ParamType.INT,
+                        ParamType.INT)
+                .voidImpl((lruCache, params) -> lruCache.put(
+                        (int) params[0],
+                        (int) params[1]))
+                // add method: int get(int)
+                .addMethod("get", ParamType.INT)
+                .impl((lruCache, params) -> lruCache.get((int) params[0]))
+        );
+
+        System.out.printf("spend: %dms%n", System.currentTimeMillis() - startTime);
+    }
+}
+```
+
+note: You can find the full source code from `example/src/leetcode/husky/test/designsolution/Example.java`
