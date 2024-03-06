@@ -5,6 +5,9 @@ allowing you to run and test your LeetCode code locally without the need
 for manual handling of input and output, both of which are automated for
 repeatability.
 
+> NOTE: The mini JDK version of this repo is 21. Because it uses the new
+> feature: Pattern Matching for switch(See [JEP 440](https://openjdk.org/jeps/440))
+
 ## Example
 
 [leetcode.1. Two Sum](https://leetcode.cn/problems/two-sum/description/)
