@@ -3,6 +3,7 @@ package leetcode.husky.test.driver.interpreter;
 
 import leetcode.husky.test.driver.interpreter.method.ConstructorMethodProxyImpl;
 import leetcode.husky.test.driver.interpreter.method.NewInstanceFunc;
+import leetcode.husky.test.driver.interpreter.method.VoidMethodProxy;
 import leetcode.husky.test.driver.interpreter.param.ParamType;
 
 import java.util.HashMap;
@@ -98,5 +99,9 @@ public class MethodProxyRegistry<T> {
          * @return 当前 MethodProxyRegistry
          */
         MethodProxyRegistry<T> impl(MethodProxy<T> methodProxy);
+
+        default MethodProxyRegistry<T> voidImpl(VoidMethodProxy<T> methodProxy) {
+            return impl(methodProxy);
+        }
     }
 }
