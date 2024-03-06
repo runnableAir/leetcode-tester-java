@@ -72,6 +72,11 @@ public class ArrayStringUtil {
                 .toArray(long[][]::new);
     }
 
+    public static List<List<String>> parse2dArrayAsList(String s) {
+        ArrayNode arrayNode = buildAnyArrayNode(s, 2, 4, STRING_TYPE | NUMBER_TYPE);
+        return nodeTo2dList(arrayNode, ElementNode::asString);
+    }
+
     private static String[] stringListToArray(List<String> list) {
         return list.toArray(String[]::new);
     }
