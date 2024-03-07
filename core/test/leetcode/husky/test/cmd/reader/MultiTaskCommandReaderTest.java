@@ -18,8 +18,8 @@ public class MultiTaskCommandReaderTest {
                 """;
         CommandSet expected = new CommandSet(
                 List.of(new Command("Solution", List.of()),
-                        new Command("hello", List.of("java")),
-                        new Command("world", List.of("go"))
+                        new Command("hello", List.of("\"java\"")),
+                        new Command("world", List.of("\"go\""))
                 )
         );
         LineReader lineReader = new SimpleLineReaderImpl(new StringReader(inputText));
