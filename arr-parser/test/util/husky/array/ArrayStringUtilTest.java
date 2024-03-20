@@ -76,8 +76,9 @@ public class ArrayStringUtilTest {
                 [["a1","b2"]]
                 [["a1","b2"],["c3","d4"]]
                 ["1 + 2","System.out.println(\\"Hello world!\\")"]
-                ["toArray(\\"[1,2,\\\\"java\\\\"]\\")"]
-                [["a","b","c"],["def","G","[1,2,3,[4,5],[],[\\\\"HI\\\\"]]"]]
+                ["toArray(\\"[1,2,\\\\\\"java\\\\\\"]\\")"]
+                [["a","b","c"],["def","G","[1,2,3,[4,5],[],[\\"HI\\"]]"]]
+                ["😶‍🌫️😶‍🌫️"]
                 """;
         var output = new StringBuilder();
         sourceText.lines()
@@ -88,6 +89,24 @@ public class ArrayStringUtilTest {
                     output.append(asString).append("\n");
                 });
         assertEquals(sourceText, output.toString());
+
+        sourceText = """
+                ["\\ud83d\\ude36\\u200d\\ud83c\\udf2b\\ufe0f\\ud83d\\ude36\\u200d\\ud83c\\udf2b\\ufe0f"]
+                ["\\u0048\\u0065\\u006c\\u006c\\u006f\\u0020\\u0057\\u006f\\u0072\\u006c\\u0064"]
+                """;
+        var expectedOutput = """
+                ["😶‍🌫️😶‍🌫️"]
+                ["Hello World"]
+                """;
+        output.setLength(0);
+        sourceText.lines()
+                .forEach(s -> {
+                    System.out.println("=> " + s);
+                    String asString = buildAnyArrayNode(s).asString();
+                    System.out.println("<= (asString) " + asString);
+                    output.append(asString).append("\n");
+                });
+        assertEquals(expectedOutput, output.toString());
     }
 
     @Test
@@ -101,7 +120,7 @@ public class ArrayStringUtilTest {
                 [["a1","b2"]]
                 [["a1","b2"],["c3","d4"]]
                 ["1 + 2","System.out.println(\\"Hello world!\\")"]
-                ["toArray(\\"[1,2,\\\\"java\\\\"]\\")"]
+                ["toArray(\\"[1,2,\\\\\\"java\\\\\\"]\\")"]
                 """;
         var expectedOutputText = """
                 []

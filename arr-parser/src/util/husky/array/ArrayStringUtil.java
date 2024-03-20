@@ -319,14 +319,12 @@ public class ArrayStringUtil {
 
     private static int scanString(int begin, String s) {
         int i = begin + 1, len = s.length();
-        while (i < len) {
-            while (i < len && s.charAt(i) != '"') {
+        while (i < len && s.charAt(i) != '"') {
+            if (s.charAt(i) == '\\') {
+                i = scanEscapedChars(i, s);
+            } else {
                 i++;
             }
-            if (s.charAt(i - 1) != '\\') {
-                break;
-            }
-            i++;
         }
         if (i == len) {
             throw new IllegalArgumentException(
@@ -335,6 +333,48 @@ public class ArrayStringUtil {
             );
         }
         return i + 1;
+    }
+
+    private static int scanEscapedChars(int begin, String s) {
+        int i = begin + 1, len = s.length();
+        if (i == len) {
+            throw new IllegalArgumentException(
+                    "expected one char after char '\\' at pos " + i + " but nothing");
+        }
+        char ch = s.charAt(i);
+        String specialChars = "\"/\\nturbf";
+        if (specialChars.indexOf(ch) == -1) {
+            throw new IllegalArgumentException(
+                    "expected one char ('\"' or '/' or '\\' or 'n' or 't' or 'u' or 'r' or 'b' or 'f') " +
+                            "after char '\\' at pos i");
+        }
+        if (ch != 'u') {
+            return begin + 2;
+        }
+        if (begin >= len - 6) {
+            throw new IllegalArgumentException(
+                    "requires at least 4 chars to represent a valid hex code from pos " + i
+            );
+        }
+        i++;
+        int hexDigitsCnt = 0;
+        while (i < len && hexDigitsCnt < 5) {
+            ch = s.charAt(i);
+            if (Character.digit(ch, 16) == -1) {
+                break;
+            }
+            hexDigitsCnt++;
+            i++;
+        }
+        if (hexDigitsCnt < 4) {
+            throw new IllegalArgumentException(
+                    "invalid hex char at pos " + i + ": " + ch
+            );
+        }
+        if (hexDigitsCnt > 5) {
+            throw new IllegalArgumentException("too many hex digits at pos " + i);
+        }
+        return i;
     }
 }
 
@@ -372,8 +412,56 @@ class StringNode extends ElementNode<String> {
         if (val.charAt(0) != '"' && val.charAt(len - 1) != '"') {
             throw new IllegalStateException("can not parse '%s' to string val because it isn't wrapped by '\"'");
         }
-        val = val.substring(1, len - 1);
-        return val.replaceAll("\\\\\"", "\"");
+        StringBuilder sb = new StringBuilder();
+        len--;
+        for (int i = 1; i < len; i++) {
+            char ch = val.charAt(i);
+            if (ch != '\\') {
+                sb.append(ch);
+                continue;
+            }
+            if (i == len - 1) {
+                throw new IllegalStateException("For input String %s, invalid char at pos %d: %c"
+                        .formatted(val, i, '\\'));
+            }
+            ch = val.charAt(++i);
+            int codePoint = switch (ch) {
+                case '"' -> '"';   // "
+                case '\\' -> '\\'; // \
+                case '/' -> '/';   // /
+                case 'n' -> '\n';  // \n
+                case 't' -> '\t';  // \t
+                case 'b' -> '\b';  // \b
+                case 'f' -> '\f';  // \f
+                case 'r' -> '\r';  // \r
+                case 'u' -> {      // unicode (eg: \u0000)
+                    int hexVal = 0;
+                    int end = i + 4; // 4 chars for hex digits
+                    if (end > len) {
+                        yield -1;
+                    }
+                    for (int j = i + 1; j <= end; j++) {
+                        char hexChar = val.charAt(j);
+                        int d = Character.digit(hexChar, 16);
+                        if (d == -1) {
+                            yield -1;
+                        }
+                        hexVal = (hexVal << 4) | d;
+                    }
+                    i = end;
+                    yield hexVal;
+                }
+                default -> -1;
+            };
+            if (codePoint == -1) {
+                throw new IllegalStateException(
+                        "For input String %s, invalid char from pos %d: \\"
+                                .formatted(val, i)
+                );
+            }
+            sb.appendCodePoint(codePoint);
+        }
+        return sb.toString();
     }
 
     @Override
@@ -383,7 +471,17 @@ class StringNode extends ElementNode<String> {
 
     @Override
     public String asString() {
-        String escapedString = getVal().replaceAll("\"", "\\\\\"");
-        return "\"" + escapedString + "\"";
+        String val = getVal();
+        int len = val.length();
+        StringBuilder sb = new StringBuilder();
+        sb.append('"');
+        for (int i = 0; i < len; i++) {
+            char ch = val.charAt(i);
+            if ("\"\\\n\t\r\b\f".indexOf(ch) != -1) {
+                sb.append('\\');
+            }
+            sb.append(ch);
+        }
+        return sb.append('"').toString();
     }
 }
