@@ -248,7 +248,8 @@ public class ArrayStringUtil {
         }
 
         if (curDimension > maxDimension) {
-            throw new IllegalArgumentException("too many '[' at %d pos that make array dimension > limit".formatted(i));
+            throw new IllegalArgumentException("too many '[' at %d pos that make array dimension > limit(=%d)"
+                    .formatted(i, maxDimension));
         }
         if (curDimension > 0) {
             throw new IllegalArgumentException("expected ']' but the array is end");
