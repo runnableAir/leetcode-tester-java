@@ -145,6 +145,15 @@ public class ArrayStringUtilTest {
     }
 
     @Test
+    public void parse2dArrayAsList() {
+        String text = """
+                [[1, 2], ["a", "b"], [[1,2,3,4]]]""";
+        List<List<String>> lists = ArrayStringUtil.parse2dArrayAsList(text);
+        System.out.println(lists);
+        assertEquals(text, lists.toString());
+    }
+
+    @Test
     public void anyArray() {
         List<String> anyArray = List.of(
                 "[\"abc\", \"abc\"]",

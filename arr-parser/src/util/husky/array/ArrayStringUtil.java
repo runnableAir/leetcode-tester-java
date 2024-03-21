@@ -72,6 +72,25 @@ public class ArrayStringUtil {
                 .toArray(long[][]::new);
     }
 
+    /**
+     * Transforming a 2D array represented as a JSON string
+     * into a list, where each inner list contains the literals
+     * of the respective elements
+     *
+     * @param s string representing a 2D array
+     * @return 2D list contains the literals of the respective elements
+     */
+    public static List<List<String>> parse2dArrayAsList(String s) {
+        return mapNodeToXXList(
+                buildAnyArrayNode(s, 2, 4, STRING_TYPE | NUMBER_TYPE),
+                child -> mapNodeToXXList(child, ArrayNode::asString)
+        );
+    }
+
+   private static <T> List<T> mapNodeToXXList(ArrayNode arrayNode, Function<ArrayNode, T> mapper) {
+        return arrayNode.getChildren().stream().map(mapper).toList();
+   }
+
     private static String[] stringListToArray(List<String> list) {
         return list.toArray(String[]::new);
     }
