@@ -457,7 +457,7 @@ class StringNode extends ElementNode<String> {
                 case 'u' -> {      // unicode (eg: \u0000)
                     int hexVal = 0;
                     int end = i + 4; // 4 chars for hex digits
-                    if (end > len) {
+                    if (end >= len) {
                         yield -1;
                     }
                     for (int j = i + 1; j <= end; j++) {
