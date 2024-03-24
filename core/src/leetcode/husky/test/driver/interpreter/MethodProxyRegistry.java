@@ -112,11 +112,21 @@ public class MethodProxyRegistry<T> {
     }
 
     public interface Constructor<T> {
-        MethodProxyRegistry<T> proxy(NewInstanceFunc<T> newInstanceFunc);
+        MethodProxyRegistry<T> impl(NewInstanceFunc<T> newInstanceFunc);
     }
 
     public interface Method<T> {
-        MethodProxyRegistry<T> proxy(MethodProxy<T> methodProxy);
+        /**
+         * 为注册方法添加实现逻辑
+         *
+         * @param methodProxy methodProxy 对象. eg: (object, params) -> object.foo(params[0], params[1]...)
+         * @return 当前 MethodProxyRegistry
+         */
+        MethodProxyRegistry<T> impl(MethodProxy<T> methodProxy);
+
+        default MethodProxyRegistry<T> voidImpl(VoidMethodProxy<T> methodProxy) {
+            return impl(methodProxy);
+        }
     }
 
     private static class ConstructorMethodProxyImpl<T> extends ConstructorMethodProxy<T> {
