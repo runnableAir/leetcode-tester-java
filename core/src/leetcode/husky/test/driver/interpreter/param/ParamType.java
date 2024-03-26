@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ParamType<T> extends SimpleArgumentResolver<T> {
     // string
-    ParamType<String> STRING = ArgumentParseUtil::removeRedundantQuote;
+    ParamType<String> STRING = ArgumentParseUtil::getString;
     ParamType<String[]> STRING_ARRAY = ArgumentParseUtil::getStringArray;
     ParamType<List<String>> STRING_LIST = ArgumentParseUtil::getStringList;
 

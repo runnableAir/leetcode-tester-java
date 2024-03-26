@@ -38,16 +38,6 @@ public class ArgumentParseUtil {
         return ArrayStringUtil.getInt2dArray(arrayLiked);
     }
 
-    public static String removeRedundantQuote(String s) {
-        if (s.length() < 2) {
-            return s;
-        }
-        if (s.startsWith("\"") && s.endsWith("\"")) {
-            return s.substring(1, s.length() - 1);
-        }
-        return s;
-    }
-
     public static String getString(String val) {
         int len = val.length();
         if (val.charAt(0) != '"' && val.charAt(len - 1) != '"') {
