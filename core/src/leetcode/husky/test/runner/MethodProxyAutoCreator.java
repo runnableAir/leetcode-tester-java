@@ -1,9 +1,10 @@
 package leetcode.husky.test.runner;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import leetcode.husky.test.driver.interpreter.MethodProxy;
+import leetcode.husky.test.driver.interpreter.param.ParamType;
+
+import java.lang.reflect.*;
+import java.util.Arrays;
 import java.util.List;
 
 import static leetcode.husky.test.runner.MethodProxyAutoCreator.getSimpleTypeName;
@@ -12,7 +13,58 @@ import static leetcode.husky.test.runner.MethodProxyAutoCreator.getSimpleTypeNam
 // 1. 提供方法名
 // 2. 提供方法名+参数列表
 // 3. 提供方法签名字符串
-public class MethodProxyAutoCreator {
+public class MethodProxyAutoCreator<T> {
+
+    private final Class<T> declaredType;
+
+    public MethodProxyAutoCreator(Class<T> declaredType) {
+        this.declaredType = declaredType;
+    }
+
+
+    /**
+     * Create a {@code MethodProxy} object according to specific
+     * name and parameter types of method declared in the type {@code T}
+     * <p>
+     * This method is reflected through {@linkplain Class#getMethod(String, Class[])}
+     * to find the appropriate {@linkplain Method} object
+     *
+     * @param methodName name of the method
+     * @param paramTypes parameter types of the method
+     */
+    public MethodProxy<T> createMethod(String methodName, ParamType<?>... paramTypes) throws NoSuchMethodException {
+        Class<?>[] formalParameterTypes = getFormalParameterTypes(paramTypes);
+        // get public member method with specific name and parameter types
+        Method method = declaredType.getDeclaredMethod(methodName, formalParameterTypes);
+        return wrapReflectingMethodToProxy(method);
+    }
+
+    private MethodProxy<T> wrapReflectingMethodToProxy(Method method) {
+        return (t, params) -> {
+            Object returnValue;
+            try {
+                returnValue = method.invoke(t, params);
+            } catch (InvocationTargetException e) {
+                throw new MethodReflectingInvokeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+            return returnValue;
+        };
+    }
+
+    private Class<?>[] getFormalParameterTypes(ParamType<?>[] paramTypes) {
+        int len = paramTypes.length;
+        Class<?>[] formalTypes = new Class[len];
+        for (int i = 0; i < len; i++) {
+            formalTypes[i] = getFormalParamType(paramTypes[i]);
+        }
+        return formalTypes;
+    }
+
+    private Class<?> getFormalParamType(ParamType<?> paramType) {
+        throw new RuntimeException("unimplemented");
+    }
 
     static String getSimpleTypeName(Type type) {
         return switch (type) {
@@ -80,23 +132,34 @@ class MySolution {
     }
 
     public static void main(String[] args) throws Exception {
-        String methodSignature = "public List method1(List,int,int[][],String,String[],List)";
-        String className = "leetcode.husky.test.runner.MySolution";
-        Class<?> cls = Class.forName(className);
-        System.out.println("class name: " + className);
-        Method[] methods = cls.getMethods();
-        for (Method method : methods) {
-            String methodName = method.getName();
-            if (methodName.equals("method1")) {
-                String genericString = method.toString();
-                genericString =genericString.replaceAll("java\\.util\\.(\\w+)", "$1");
-                genericString =genericString.replaceAll("java\\.lang\\.(\\w+)", "$1");
-                genericString = genericString.replaceAll(className +  "\\.", "");
-                if (genericString.equals(methodSignature)) {
-                    System.out.print("==> ");
-                }
-                System.out.println(genericString);
+        // 泛型擦除导致无法读取运行时的泛型...
+        // 通过继承(匿名内部类也是继承)父类并声明父类泛型的具体类型可以保留泛型...
+        ParamType<int[]> paramType = new ParamType<int[]>() {
+            @Override
+            public int[] resolveOneArg(String arg) {
+                return ParamType.INT_ARRAY.resolve(arg);
             }
+        };
+        Class<?> clazz = paramType.getClass();
+        System.out.println(clazz.getName());
+        Arrays.stream(clazz.getMethods())
+                .map(MySolution::simpleMethodSignature)
+                .forEach(System.out::println);
+    }
+
+    private static String simpleMethodSignature(Method method) {
+        // System.out.println(" debug: " + method);
+        Class<?> declaringClass = method.getDeclaringClass();
+        String className = declaringClass.getName();
+        String simpleClassName = declaringClass.getSimpleName();
+        String genericString = method.toGenericString();
+        genericString = genericString.replace("java.util.", "");
+        genericString = genericString.replace("java.lang.", "");
+        if (simpleClassName.isEmpty()) {
+            genericString = genericString.replace(className + ".", "");
+        } else {
+            genericString = genericString.replace(className, simpleClassName);
         }
+        return genericString;
     }
 }
