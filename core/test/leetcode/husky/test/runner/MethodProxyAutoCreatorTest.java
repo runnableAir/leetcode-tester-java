@@ -8,11 +8,11 @@ public class MethodProxyAutoCreatorTest {
     public void testCreateMethodProxyBySignature() throws NoSuchMethodException {
         var creator = new MethodProxyAutoCreator<>(Solution.class);
         var hello = creator.createMethod(
-                new MethodSignature("hello", "String", "String"));
+                new MethodSignature("hello", "String"));
         System.out.println(hello);
 
         var foo = creator.createMethod(
-                new MethodSignature("foo", "int[]", "int", "int", "int[][]"));
+                new MethodSignature("foo", "int", "int", "int[][]"));
         System.out.println(foo);
     }
 

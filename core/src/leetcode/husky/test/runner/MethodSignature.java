@@ -5,16 +5,15 @@ import java.util.stream.Collectors;
 
 public record MethodSignature(
         String name,
-        String returnType,
         List<String> parameterTypes) {
 
-    public MethodSignature(String name, String returnType, String... parameterTypes) {
-        this(name, returnType, List.of(parameterTypes));
+    public MethodSignature(String name, String... parameterTypes) {
+        this(name, List.of(parameterTypes));
     }
 
     @Override
     public String toString() {
-        return returnType + " " + name + parameterTypes.stream()
+        return name + parameterTypes.stream()
                 .collect(Collectors.joining(",", "(", ")"));
     }
 

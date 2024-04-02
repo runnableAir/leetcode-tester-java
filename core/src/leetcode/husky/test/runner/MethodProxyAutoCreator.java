@@ -62,6 +62,7 @@ public class MethodProxyAutoCreator<T> {
         return wrapReflectingMethodToProxy(method);
     }
 
+
     private boolean checkParametersList(Method method, List<String> parameterTypes) {
         return Arrays.stream(method.getGenericParameterTypes())
                 .map(MethodProxyAutoCreator::getSimpleTypeName)
