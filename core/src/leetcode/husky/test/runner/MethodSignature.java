@@ -16,8 +16,4 @@ public record MethodSignature(
         return name + parameterTypes.stream()
                 .collect(Collectors.joining(",", "(", ")"));
     }
-
-    public int getParameterCount() {
-        return parameterTypes.size();
-    }
 }

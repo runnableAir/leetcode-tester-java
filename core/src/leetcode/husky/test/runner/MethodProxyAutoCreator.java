@@ -19,7 +19,7 @@ public class MethodProxyAutoCreator<T> {
      * Create a {@code MethodProxy} object according to specific
      * name and parameter types of method declared in the type {@code T}
      * <p>
-     * This method is reflected through {@linkplain Class#getMethod(String, Class[])}
+     * This method is reflected through {@linkplain Class#getDeclaredMethod(String, Class[])}
      * to find the appropriate {@linkplain Method} object
      *
      * @param methodName name of the method
@@ -38,7 +38,7 @@ public class MethodProxyAutoCreator<T> {
      * Create a {@code MethodProxy} object according to specific
      * method signature (name and parameter types) of method declared in the type {@code T}
      * <p>
-     * This method is reflected through {@linkplain Class#getMethod(String, Class[])}
+     * This method is reflected through {@linkplain Class#getDeclaredMethod(String, Class[])}}
      * to find the appropriate {@linkplain Method} object
      *
      * @param methodSignature method signature
