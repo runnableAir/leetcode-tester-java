@@ -48,7 +48,7 @@ public class DesignStyleTester<T> {
     /**
      * 解析方法的参数列表并返回对应的 ParamType 对象
      * <p>
-     * 该方法遍历参数列表的所有的参数类型，然后根据其包名称(包含泛型信息)获取对应的 ParamType 对象
+     * 该方法遍历参数列表的所有的参数类型，然后根据其名称(包含泛型信息)获取对应的 ParamType 对象
      *
      * @param method 表示待解析方法的 Method 对象
      * @return 包含对应 ParamType 对象的数组
