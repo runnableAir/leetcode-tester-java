@@ -62,8 +62,16 @@ public class DesignStyleTester<T> {
     }
 
     private ParamType<?> resolveParameterTypeByName(String typeName) {
-        // todo implement this
-        return null;
+        return switch (typeName) {
+            case "java.lang.String" -> ParamType.STRING;
+            case "java.lang.String[]" -> ParamType.STRING_ARRAY;
+            case "java.util.List<java.lang.String>" -> ParamType.STRING_LIST;
+            case "int" -> ParamType.INT;
+            case "java.util.List<java.lang.Integer>" -> ParamType.INT_LIST;
+            case "int[]" -> ParamType.INT_ARRAY;
+            case "int[][]" -> ParamType.INT_2D_ARRAY;
+            default -> throw new IllegalStateException("Unsupported type name: " + typeName);
+        };
     }
 
     private void updateInstance(T instance) {
