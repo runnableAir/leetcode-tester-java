@@ -14,6 +14,18 @@ import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
+/**
+ * 用于运行和测试 "设计类" 风格 (功能设计) 的类。
+ * <p>
+ * 被测试的类具备一些功能, 每个功能对应一个 public 方法，
+ * 该类的目标是根据测试输入的要求，执行相应的方法并检验结果。
+ * <p>
+ * 该类实现的思路是：通过反射将被测试的类中的所有 public 方法注册到
+ * {@link ObjectCommandDriver} 对象中， 然后使用 {@link CommandShell}
+ * 模型读取样例输入从而执行相应的方法。<br>
+ *
+ * @param <T> 需要被测试的类的类型
+ */
 public class DesignStyleTester<T> {
     private final MethodProxyRegistry<T> methodProxyRegistry;
     private final ObjectCommandDriver<T> objectCommandDriver;
@@ -31,6 +43,7 @@ public class DesignStyleTester<T> {
      * @param caseInput 用于输入文本字符流的 BufferedReader
      */
     public void test(BufferedReader caseInput) {
+        // todo 实现对运行结果的校验
         MultiTaskCommandReader multiTaskCommandReader = new MultiTaskCommandReader();
         CommandShell commandShell = new CommandShell(objectCommandDriver, multiTaskCommandReader);
         commandShell.process(caseInput);
