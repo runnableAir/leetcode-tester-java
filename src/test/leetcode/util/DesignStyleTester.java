@@ -53,6 +53,7 @@ public class DesignStyleTester<T> {
     private MethodProxy<T> reflectingMethodProxyImplementer(Method method) {
         return (t, params) -> {
             try {
+                method.setAccessible(true);
                 return method.invoke(t, params);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("cannot invoke reflecting method: " + method.getName(), e);
@@ -71,6 +72,7 @@ public class DesignStyleTester<T> {
     private static <T> NewInstanceFunc<T> reflectingConstructorImplementer(Constructor<T> constructor) {
         return params -> {
             try {
+                constructor.setAccessible(true);
                 return constructor.newInstance(params);
             } catch (InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException("cannot get a new instance by invoking constructor: " + constructor, e);
