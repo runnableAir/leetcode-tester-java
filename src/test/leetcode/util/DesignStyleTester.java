@@ -1,18 +1,40 @@
 package test.leetcode.util;
 
+import leetcode.husky.test.cmd.CommandShell;
+import leetcode.husky.test.cmd.reader.MultiTaskCommandReader;
+import leetcode.husky.test.driver.ObjectCommandDriver;
+import leetcode.husky.test.driver.ObjectCommandDriverFactory;
 import leetcode.husky.test.driver.interpreter.MethodProxy;
 import leetcode.husky.test.driver.interpreter.MethodProxyRegistry;
 import leetcode.husky.test.driver.interpreter.NewInstanceFunc;
 import leetcode.husky.test.driver.interpreter.param.ParamType;
 
+import java.io.BufferedReader;
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
 public class DesignStyleTester<T> {
-    private final MethodProxyRegistry<T> methodProxyRegistry = new MethodProxyRegistry<>(this::updateInstance);
-    private T instance;
+    private final MethodProxyRegistry<T> methodProxyRegistry;
+    private final ObjectCommandDriver<T> objectCommandDriver;
 
+
+    public DesignStyleTester() {
+        ObjectCommandDriverFactory<T> objectCommandDriverFactory = new ObjectCommandDriverFactory<>();
+        methodProxyRegistry = objectCommandDriverFactory.getMethodProxyRegistry();
+        objectCommandDriver = objectCommandDriverFactory.getDriver();
+    }
+
+    /**
+     * 从 BufferedReader 中读取样例输入文本
+     *
+     * @param caseInput 用于输入文本字符流的 BufferedReader
+     */
+    public void test(BufferedReader caseInput) {
+        MultiTaskCommandReader multiTaskCommandReader = new MultiTaskCommandReader();
+        CommandShell commandShell = new CommandShell(objectCommandDriver, multiTaskCommandReader);
+        commandShell.process(caseInput);
+    }
 
     /**
      * 反射获取所有 public 修饰的方法并注册
@@ -109,9 +131,5 @@ public class DesignStyleTester<T> {
             case "int[][]" -> ParamType.INT_2D_ARRAY;
             default -> throw new IllegalStateException("Unsupported type name: " + typeName);
         };
-    }
-
-    private void updateInstance(T instance) {
-        this.instance = instance;
     }
 }
