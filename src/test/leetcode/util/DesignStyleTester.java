@@ -63,7 +63,8 @@ public class DesignStyleTester<T> {
     }
 
     private void registerReflectingConstructor(Constructor<T> constructor) {
-        methodProxyRegistry.addConstructor(constructor.getName(), resolveExecutableParameters(constructor))
+        String constructorSimpleName = constructor.getDeclaringClass().getSimpleName();
+        methodProxyRegistry.addConstructor(constructorSimpleName, resolveExecutableParameters(constructor))
                 .impl(reflectingConstructorImplementer(constructor));
     }
 
