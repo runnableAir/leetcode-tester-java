@@ -81,7 +81,7 @@ public class Main {
         String text = """
                 ["LRUCache","put","put","get","put","get","put","get","get","get"]
                 [[2],[1,1],[2,2],[1],[3,3],[2],[4,4],[1],[3],[4]]
-                    """;
+                """;
         Reader testData = new StringReader(text);
 
         long startTime = System.currentTimeMillis();
@@ -96,7 +96,7 @@ public class Main {
         Tester.<LRUCache>testForCommands(testData, config -> config
                 // add constructor: LRUCache(int)
                 .addConstructor("LRUCache", ParamType.INT)
-                .impl(params -> new DesignSolution.LRUCache((int) params[0]))
+                .impl(params -> new LRUCache((int) params[0]))
                 // add method: void put(int, int)
                 .addMethod("put",
                         ParamType.INT,
