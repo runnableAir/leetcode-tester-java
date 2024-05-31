@@ -4,10 +4,11 @@ import leetcode.husky.test.cmd.Command;
 import leetcode.husky.test.driver.CommandDriver;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class ObjectCommandDriver<T> implements CommandDriver, MethodInvokeContext<T> {
     private T target;
-    private final HashMap<String, MethodInvokeHandler<T>> handlerMap = new HashMap<>();
+    private final Map<String, MethodInvokeHandler<T>> handlerMap = new HashMap<>();
 
 
     @Override

@@ -13,14 +13,14 @@ public abstract class MethodInvokeHandler<T> {
 
     protected Object handle(MethodInvokeRequest methodInvokeRequest) {
         Object[] arguments = resolveArguments(methodInvokeRequest);
-        T t = Objects.requireNonNull(methodInvokeContext,
-                "The \"methodInvokeContext\" is null. It may indicate a MethodInvokeContext " +
-                        "hava not been registered to this object").getTarget();
+        T t = getMethodInvokeContext().getTarget();
         return methodInvocation.invoke(t, arguments);
     }
 
     protected MethodInvokeContext<T> getMethodInvokeContext() {
-        return methodInvokeContext;
+        return Objects.requireNonNull(methodInvokeContext,
+                "The \"methodInvokeContext\" is null. It may indicate a MethodInvokeContext " +
+                        "hava not been registered to this object");
     }
 
     protected abstract Object[] resolveArguments(MethodInvokeRequest methodInvokeRequest);
