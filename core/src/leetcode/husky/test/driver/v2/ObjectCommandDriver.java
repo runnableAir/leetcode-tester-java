@@ -11,6 +11,8 @@ public class ObjectCommandDriver<T> implements CommandDriver, MethodInvokeContex
     private final Map<String, MethodInvokeHandler<T>> handlerMap = new HashMap<>();
 
 
+    // It asks the `command` represent a request for a target method
+    // specified by `command.name()`
     @Override
     public Object execute(Command command) {
         MethodInvokeRequest methodInvokeRequest = formRequest(command);
