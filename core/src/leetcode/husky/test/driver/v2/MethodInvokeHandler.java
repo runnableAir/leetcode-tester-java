@@ -2,16 +2,18 @@ package leetcode.husky.test.driver.v2;
 
 import java.util.Objects;
 
-public abstract class MethodInvokeHandler<T> {
+public class MethodInvokeHandler<T> {
     private final MethodInvocation<T> methodInvocation;
+    private final ArgumentResolver argumentResolver;
     private MethodInvokeContext<T> methodInvokeContext;
 
 
-    protected MethodInvokeHandler(MethodInvocation<T> methodInvocation) {
+    public MethodInvokeHandler(MethodInvocation<T> methodInvocation, ArgumentResolver argumentResolver) {
         this.methodInvocation = methodInvocation;
+        this.argumentResolver = argumentResolver;
     }
 
-    protected Object handle(MethodInvokeRequest methodInvokeRequest) {
+    public Object handle(MethodInvokeRequest methodInvokeRequest) {
         Object[] arguments = resolveArguments(methodInvokeRequest);
         T t = getMethodInvokeContext().getTarget();
         return methodInvocation.invoke(t, arguments);
@@ -23,9 +25,16 @@ public abstract class MethodInvokeHandler<T> {
                         "hava not been registered to this object");
     }
 
-    protected abstract Object[] resolveArguments(MethodInvokeRequest methodInvokeRequest);
+    protected Object[] resolveArguments(MethodInvokeRequest methodInvokeRequest) {
+        return argumentResolver.resolveArguments(methodInvokeRequest);
+    }
 
     void register(MethodInvokeContext<T> context) {
         this.methodInvokeContext = context;
+    }
+
+    public interface ArgumentResolver {
+
+        Object[] resolveArguments(MethodInvokeRequest methodInvokeRequest);
     }
 }

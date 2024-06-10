@@ -1,6 +1,7 @@
 package leetcode.husky;
 
 import leetcode.husky.test.driver.v2.InitialInvocation;
+import leetcode.husky.test.driver.v2.InitialTargetHandler;
 import leetcode.husky.test.driver.v2.MethodInvocation;
 import leetcode.husky.test.driver.v2.MethodInvokeHandler;
 import leetcode.husky.test.driver.v2.MethodInvokeRequest;
@@ -23,7 +24,7 @@ public class SolutionConfig<T> {
     public void addConstructor(String key,
                                InitialInvocation<T> initialInvocation,
                                StringConverter... stringConverters) {
-        var handler = new SimpleMethodInvokeHandler<>(initialInvocation, List.of(stringConverters));
+        var handler = new SimpleInitialTargetHandler<>(initialInvocation, List.of(stringConverters));
         handlerMap.put(key, handler);
     }
 
@@ -42,17 +43,30 @@ public class SolutionConfig<T> {
     }
 
     static class SimpleMethodInvokeHandler<T> extends MethodInvokeHandler<T> {
+
+        SimpleMethodInvokeHandler(MethodInvocation<T> methodInvocation,
+                                  List<StringConverter> converterList) {
+            super(methodInvocation, new SimpleArgumentResolver(converterList));
+        }
+    }
+
+    static class SimpleInitialTargetHandler<T> extends InitialTargetHandler<T> {
+
+        SimpleInitialTargetHandler(MethodInvocation<T> methodInvocation,
+                                   List<StringConverter> converterList) {
+            super(methodInvocation, new SimpleArgumentResolver(converterList));
+        }
+    }
+
+    static class SimpleArgumentResolver implements MethodInvokeHandler.ArgumentResolver {
         private final List<StringConverter> converterList;
 
-
-        protected SimpleMethodInvokeHandler(MethodInvocation<T> methodInvocation,
-                                            List<StringConverter> converterList) {
-            super(methodInvocation);
+        SimpleArgumentResolver(List<StringConverter> converterList) {
             this.converterList = converterList;
         }
 
         @Override
-        protected Object[] resolveArguments(MethodInvokeRequest methodInvokeRequest) {
+        public Object[] resolveArguments(MethodInvokeRequest methodInvokeRequest) {
             List<String> parameters = methodInvokeRequest.parameters();
             if (converterList.size() != parameters.size()) {
                 throw new RuntimeException(

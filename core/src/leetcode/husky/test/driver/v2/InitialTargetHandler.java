@@ -1,9 +1,9 @@
 package leetcode.husky.test.driver.v2;
 
-public abstract class InitialTargetHandler<T> extends MethodInvokeHandler<T> {
+public class InitialTargetHandler<T> extends MethodInvokeHandler<T> {
 
-    protected InitialTargetHandler(InitialInvocation<T> initialInvocation) {
-        super(initialInvocation);
+    public InitialTargetHandler(MethodInvocation<T> methodInvocation, ArgumentResolver argumentResolver) {
+        super(methodInvocation, argumentResolver);
     }
 
     @SuppressWarnings("unchecked")
@@ -13,7 +13,4 @@ public abstract class InitialTargetHandler<T> extends MethodInvokeHandler<T> {
         getMethodInvokeContext().setTarget(newInstance);
         return newInstance;
     }
-
-    @Override
-    protected abstract Object[] resolveArguments(MethodInvokeRequest methodInvokeRequest);
 }
