@@ -16,6 +16,10 @@ public class MethodInvokeHandler<T> {
     public Object handle(MethodInvokeRequest methodInvokeRequest) {
         Object[] arguments = resolveArguments(methodInvokeRequest);
         T t = getMethodInvokeContext().getTarget();
+        if (t == null && !methodInvocation.ignoreNullInstance()) {
+            throw new NullPointerException("The target object in current invoking context is null and can not be " +
+                    "ignored. It may need to be initialized at first!");
+        }
         return methodInvocation.invoke(t, arguments);
     }
 

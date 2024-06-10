@@ -7,4 +7,9 @@ public interface InitialInvocation<T> extends MethodInvocation<T> {
     default Object invoke(T ignored, Object... arguments) {
         return invoke(arguments);
     }
+
+    @Override
+    default boolean ignoreNullInstance() {
+        return true;
+    }
 }
