@@ -34,7 +34,7 @@ public class SolutionConfig<T> {
         for (var invokeHandlerEntry : handlerMap.entrySet()) {
             String targetMethodKey = invokeHandlerEntry.getKey();
             MethodInvokeHandler<T> handler = invokeHandlerEntry.getValue();
-            solutionTester.addMethod(targetMethodKey, handler);
+            solutionTester.addMethodInvokeHandler(targetMethodKey, handler);
         }
     }
 

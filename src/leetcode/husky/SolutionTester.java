@@ -1,6 +1,9 @@
 package leetcode.husky;
 
+import leetcode.husky.test.cmd.CommandSet;
 import leetcode.husky.test.cmd.CommandShell;
+import leetcode.husky.test.cmd.reader.CommandReader;
+import leetcode.husky.test.cmd.reader.LineReader;
 import leetcode.husky.test.driver.v2.MethodInvokeHandler;
 import leetcode.husky.test.driver.v2.ObjectCommandDriver;
 
@@ -10,7 +13,7 @@ public class SolutionTester<T> {
     final ObjectCommandDriver<T> objectCommandDriver = new ObjectCommandDriver<>();
 
 
-    public void addMethod(String targetMethodKey, MethodInvokeHandler<T> handler) {
+    public void addMethodInvokeHandler(String targetMethodKey, MethodInvokeHandler<T> handler) {
         objectCommandDriver.addHandler(targetMethodKey, handler);
     }
 
