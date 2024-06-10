@@ -5,15 +5,13 @@ import leetcode.husky.test.driver.v2.InitialTargetHandler;
 import leetcode.husky.test.driver.v2.MethodInvocation;
 import leetcode.husky.test.driver.v2.MethodInvokeHandler;
 import leetcode.husky.test.driver.v2.MethodInvokeRequest;
-import leetcode.husky.test.driver.v2.ObjectCommandDriver;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// Provide simple config for v2.ObjectCommandDriver by `config.apply(driver)`
-public class ObjectCommandDriverSimpleConfig<T> {
-    private final Map<String, MethodInvokeHandler<T>> handlerMap = new HashMap<>();
+public class SolutionConfig<T> {
+    Map<String, MethodInvokeHandler<T>> handlerMap = new HashMap<>();
 
 
     public void addMethod(String key,
@@ -30,11 +28,11 @@ public class ObjectCommandDriverSimpleConfig<T> {
         handlerMap.put(key, handler);
     }
 
-    void applyTo(ObjectCommandDriver<T> objectCommandDriver) {
+    void applyTo(SolutionTester<T> solutionTester) {
         for (var invokeHandlerEntry : handlerMap.entrySet()) {
             String targetMethodKey = invokeHandlerEntry.getKey();
             MethodInvokeHandler<T> handler = invokeHandlerEntry.getValue();
-            objectCommandDriver.addHandler(targetMethodKey, handler);
+            solutionTester.addMethod(targetMethodKey, handler);
         }
     }
 
