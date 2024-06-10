@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// Provide simple way to create MethodInvokeHandlers for MethodInvocation and InitialInvocation
+// to config available method of a solution object
 public class SolutionConfig<T> {
     Map<String, MethodInvokeHandler<T>> handlerMap = new HashMap<>();
 
