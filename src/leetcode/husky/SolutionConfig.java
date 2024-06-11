@@ -176,11 +176,11 @@ public class SolutionConfig<T> {
                 line = lineReader.nextLine();
             }
             if (line == null || line.isBlank()) {
-                break;
+                return List.of();
             }
             lines.add(line);
         }
-        return lines.size() == n ? lines : List.of();
+        return lines;
     }
 
     static final CommandSet EMPTY_COMMAND_SET = new CommandSet(List.of());
