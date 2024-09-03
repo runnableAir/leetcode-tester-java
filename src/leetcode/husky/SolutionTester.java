@@ -12,6 +12,14 @@ public class SolutionTester<T> {
     private CommandReader objectCommandReader;
 
 
+    /**
+     * Add a handler for invoking the target method with a specific key name.
+     * <p>
+     * The handler with the same key name will be overridden by the new one.
+     *
+     * @param targetMethodKey the specific key name of target method
+     * @param handler the new handler for the target method
+     */
     public void addMethodInvokeHandler(String targetMethodKey, MethodInvokeHandler<T> handler) {
         objectCommandDriver.addHandler(targetMethodKey, handler);
     }
