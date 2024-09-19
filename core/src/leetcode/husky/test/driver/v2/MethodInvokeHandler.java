@@ -46,7 +46,7 @@ public class MethodInvokeHandler<T> {
         return argumentResolver.resolveArguments(methodInvokeRequest);
     }
 
-    void register(MethodInvokeContext<T> context) {
+    public void register(MethodInvokeContext<T> context) {
         this.methodInvokeContext = context;
     }
 

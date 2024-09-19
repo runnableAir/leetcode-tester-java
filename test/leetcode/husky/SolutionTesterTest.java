@@ -11,7 +11,7 @@ public class SolutionTesterTest {
     @Test
     public void mainModeTest() {
         // use TwoSumSolution as example
-        SolutionTester<TwoSumSolution> solutionTester = new SolutionTester<>();
+        SolutionTester solutionTester = new SolutionTester();
         SolutionConfig<TwoSumSolution> solutionConfig = new SolutionConfig<>();
 
         solutionConfig.addConstructor("constructor",
@@ -47,7 +47,7 @@ public class SolutionTesterTest {
     @Test
     public void mainModeErrorWhenNoConstructor() {
         // use TwoSumSolution as example
-        SolutionTester<TwoSumSolution> solutionTester = new SolutionTester<>();
+        SolutionTester solutionTester = new SolutionTester();
         SolutionConfig<TwoSumSolution> solutionConfig = new SolutionConfig<>();
 
         solutionConfig.addMethod("main",
@@ -62,7 +62,7 @@ public class SolutionTesterTest {
     @Test
     public void multiModeTest() {
         // use CacheSolution as example
-        SolutionTester<CacheSolution> solutionTester = new SolutionTester<>();
+        SolutionTester solutionTester = new SolutionTester();
         SolutionConfig<CacheSolution> solutionConfig = new SolutionConfig<>();
 
         solutionConfig.addConstructor("newCacheObj",

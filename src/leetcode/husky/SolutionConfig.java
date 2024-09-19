@@ -4,11 +4,8 @@ import leetcode.husky.test.cmd.Command;
 import leetcode.husky.test.cmd.CommandSet;
 import leetcode.husky.test.cmd.reader.CommandReader;
 import leetcode.husky.test.cmd.reader.LineReader;
-import leetcode.husky.test.driver.v2.InitialInvocation;
-import leetcode.husky.test.driver.v2.InitialTargetHandler;
-import leetcode.husky.test.driver.v2.MethodInvocation;
-import leetcode.husky.test.driver.v2.MethodInvokeHandler;
-import leetcode.husky.test.driver.v2.MethodInvokeRequest;
+import leetcode.husky.test.driver.CommandDriver;
+import leetcode.husky.test.driver.v2.*;
 import util.husky.array.ArrayStringUtil;
 
 import java.util.*;
@@ -58,12 +55,10 @@ public class SolutionConfig<T> {
         this.mode = mode;
     }
 
-    void applyTo(SolutionTester<T> solutionTester) {
-        for (var invokeHandlerEntry : handlerMap.entrySet()) {
-            String targetMethodKey = invokeHandlerEntry.getKey();
-            MethodInvokeHandler<T> handler = invokeHandlerEntry.getValue();
-            solutionTester.addMethodInvokeHandler(targetMethodKey, handler);
-        }
+    void applyTo(SolutionTester solutionTester) {
+        // prepare command driver fot it
+        CommandDriver commandDriver = new CommandDriverImpl<>(handlerMap);
+
         // determine which command reader should be used for `solutionTester`
         CommandReader commandReader;
         if (mode == Mode.MAIN_INVOKE) {
@@ -72,6 +67,7 @@ public class SolutionConfig<T> {
             commandReader = new MultiInvokeCommandReader();
         }
         solutionTester.setCommandReader(commandReader);
+        solutionTester.setCommandDriver(commandDriver);
     }
 
 
@@ -184,4 +180,35 @@ public class SolutionConfig<T> {
     }
 
     static final CommandSet EMPTY_COMMAND_SET = new CommandSet(List.of());
+
+    static class CommandDriverImpl<T> implements CommandDriver, MethodInvokeContext<T> {
+        private T target;
+        private final Map<String, MethodInvokeHandler<T>> handlerMap = new HashMap<>();
+
+        CommandDriverImpl(Map<String, MethodInvokeHandler<T>> handlerMap) {
+            this.handlerMap.putAll(handlerMap);
+            this.handlerMap.values().forEach(handler -> handler.register(this));
+        }
+
+        @Override
+        public Object execute(Command command) {
+            MethodInvokeRequest methodInvokeRequest = new MethodInvokeRequest(command.name(), command.args());
+            String key = methodInvokeRequest.targetMethodKey();
+            MethodInvokeHandler<T> invokeHandler = handlerMap.get(key);
+            if (invokeHandler == null) {
+                throw new RuntimeException("Handler not found, targetMethodKey=" + key);
+            }
+            return invokeHandler.handle(methodInvokeRequest);
+        }
+
+        @Override
+        public T getTarget() {
+            return target;
+        }
+
+        @Override
+        public void setTarget(T t) {
+            this.target = t;
+        }
+    }
 }
