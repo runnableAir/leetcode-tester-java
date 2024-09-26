@@ -55,7 +55,7 @@ public class SolutionConfig<T> {
         this.mode = mode;
     }
 
-    void applyTo(SolutionTester solutionTester) {
+    public void applyTo(SolutionTester solutionTester) {
         // prepare command driver fot it
         CommandDriver commandDriver = new CommandDriverImpl<>(handlerMap);
 
