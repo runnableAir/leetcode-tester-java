@@ -8,10 +8,18 @@ import leetcode.husky.test.driver.interpreter.ConstructorMethodProxy;
 import leetcode.husky.test.driver.interpreter.MethodProxy;
 import leetcode.husky.test.driver.interpreter.MethodProxyRegistration;
 import leetcode.husky.test.driver.interpreter.MethodProxyRegistry;
+import leetcode.husky.test.driver.interpreter.param.ParamType;
 import leetcode.husky.test.driver.interpreter.param.resolver.ArgumentResolver;
 
 import java.io.Reader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class TestUtil {
@@ -172,5 +180,42 @@ public class TestUtil {
             t = conProxy.newInstance();
             return method.methodProxy().invoke(t, params);
         };
+    }
+
+    private static final Map<String, ParamType<?>> paramTypeMap = new HashMap<>() {{
+        put("java.lang.String", ParamType.STRING);
+        put("java.lang.String[]", ParamType.STRING_ARRAY);
+        put("java.util.List<java.lang.String>", ParamType.STRING_LIST);
+        put("int", ParamType.INT);
+        put("java.util.List<java.lang.Integer>", ParamType.INT_LIST);
+        put("int[]", ParamType.INT_ARRAY);
+        put("int[][]", ParamType.INT_2D_ARRAY);
+    }};
+
+    static ParamType<?> resolveByName(Parameter parameter) {
+        return paramTypeMap.get(parameter.getParameterizedType().getTypeName());
+    }
+
+    static ParamType<?>[] resolveParametersType(Parameter[] parameters) {
+        return Arrays.stream(parameters)
+                .map(TestUtil::resolveByName)
+                .toArray(ParamType[]::new);
+    }
+
+    static <T> T callConstructor(Constructor<T> constructor, Object... args) {
+        try {
+            return constructor.newInstance(args);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalStateException(
+                    "Something wrong with the constructor when it was called: " + constructor, e);
+        }
+    }
+
+    static <T> Object callMethod(Method method, T instance, Object... args) {
+        try {
+            return method.invoke(instance, args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalStateException("Something wrong with the method when it was called: " + method, e);
+        }
     }
 }
