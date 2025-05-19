@@ -203,6 +203,12 @@ public class TestUtil {
     }
 
     static <T> T callConstructor(Constructor<T> constructor, Object... args) {
+        if (!constructor.trySetAccessible()) {
+            throw new IllegalStateException(
+                    "Can not suppress the check for Java language access control" +
+                            " when the given Constructor: " + constructor +
+                            " is invoked");
+        }
         try {
             return constructor.newInstance(args);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -212,6 +218,12 @@ public class TestUtil {
     }
 
     static <T> Object callMethod(Method method, T instance, Object... args) {
+        if (!method.trySetAccessible()) {
+            throw new IllegalStateException(
+                    "Can not suppress the check for Java language access control when" +
+                            " the given Method: " + method +
+                            " is invoked");
+        }
         try {
             return method.invoke(instance, args);
         } catch (IllegalAccessException | InvocationTargetException e) {
